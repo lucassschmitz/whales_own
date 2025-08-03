@@ -1,0 +1,341 @@
+%% Code to estimate the parameters of the model using the real data. 
+
+clear
+clc
+rng(123)
+
+T = readtable('../../Data/temps/clean_ML_estimation.xlsx');
+disp(head(T));
+
+
+%parameters 
+C = numel( unique(T.captainID) );     % Number of captains 
+J = 3;         % 3 product‐types: bones, oil, sperm
+Vmax = max(T.n_voy);  % maximum of captain voyages. 
+
+%prepare data vectors
+n     = size(T,1);
+d     = T.d;
+Y     = T.Y;
+j_i   = T.productID;
+Xmat  = T.X1;
+Tau = T.Tau;
+c_id = T.captainID; % use built‑in captain ID
+
+%parameter guess. 
+in_beta   = [0.01; 0.01; 0.01];          % initial β's
+in_alpha     = [1; 1; 1];       % initial   α's (α=1)
+in_delta = [1 ; 1; 1]; %7:9
+in_gamma0 = .4;               % initial γ0 10 
+in_gamma1 = 1;               % initial γ1 11
+in_somega = [1; 3; .5];       %positions 12:14
+%σ_a is normalized to 1 
+
+theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega];
+
+[xk, wk] = HG(30);  % 30-node rule
+
+a_c = .76; 
+d_v = d(1:3); 
+Y_v = Y(1:3); 
+x_v = Xmat(3,:)';
+tau_v = Tau(3); 
+
+res = voyageLik_v2(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
+
+mask  = (c_id==284);
+d_cap    = d(mask);
+Y_cap    = Y(mask);
+Xmat_cap    = Xmat(mask,:);
+tau_v_cap  = Tau(mask);
+
+LogLc = captainLik_v2(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk);        
+
+L_global3 = globalLik_v3(theta0, d, Y, Xmat, Tau, c_id, xk, wk);
+
+%Set up negative log-likelihood for minimization
+negLL = @(th) -globalLik_v3(th, d, Y, Xmat, Tau, c_id, xk, wk);
+
+%Optimization options
+options = optimoptions('fminunc', ...
+    'Algorithm','quasi-newton', ...
+    'Display','iter', ...
+    'MaxIterations',20, ...
+    'MaxFunctionEvaluations',20);
+
+%%
+
+% estimate theta by minimizing negative log-likelihood
+[theta_hat, fval, exitflag, output] = fminunc(negLL, theta0, options);
+
+%Final log-likelihood at estimated parameters
+ll_hat = globalLik_v3(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk);
+
+save('est_ind__unrestricted', 'theta_hat')
+
+%% Loop for different initial guess. 
+
+
+
+% set up
+nInits   = 10;                     % how many initials you want
+p        = numel(theta0);         
+theta0_mat = zeros(p, nInits);
+rng(123);                     % for reproducibility
+
+% create 10 diverse initial guesses
+for k = 1:nInits
+    % draw multiplicative factors ∼ Uniform(0.5,1.5)
+    mult = 0.5 + 5*rand(p,1);
+    theta0_mat(:,k) = theta0 .* mult;
+end
+
+% preallocate results struct
+A(nInits) = struct('theta_hat',[],'fval',[],'exitflag',[],'output',[]);
+
+
+% loop over initials
+for i = 1:nInits
+    th0 = theta0_mat(:,i);
+    [theta_hat, fval, exitflag, output] = fminunc(negLL, th0, options);
+    A(i).theta_hat = theta_hat;
+    A(i).fval      = fval;
+    A(i).exitflag  = exitflag;
+    A(i).output    = output;
+end
+
+save('est_ind_unrestrictedMat.mat','A');
+
+
+%%
+theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega];
+
+%Lower bounds for non-negativity on alpha (4:6),  delta (7:9), gamma1(11), sigma_omega(12:14)
+lb = -inf(size(theta0));
+lb([4:6, 7:9,11:14]) = 0;
+
+options = optimoptions('fmincon', ...
+    'Algorithm','interior-point', ...
+    'Display','iter', ...
+    'TolFun',1e-4, 'TolX',1e-4, 'OptimalityTolerance',1e-4, ...
+    'MaxIterations',10, 'MaxFunctionEvaluations',3000);
+
+[theta_hat2, fval, exitflag, output] = fmincon(negLL, theta0, [], [], [], [], lb, [], [], options);
+
+save('est_ind__restricted', 'theta_hat2')
+
+
+A2(N) = struct();     % preallocate struct array
+
+for i = 1:N
+    theta0 = theta0_mat(:, i);
+
+    [theta_hat2, fval, exitflag, output] = fmincon(negLL, theta0, [], [], [], [], lb, [], [], options);
+
+    Store results
+    A2(i).theta_hat = theta_hat2;   % column vector
+    A2(i).fval      = fval;        % scalar
+    A2(i).exitflag  = exitflag;    % scalar
+    A2(i).output    = output;      % struct (e.g., iterations, message, etc.)
+end
+
+save('est_ind_restrictedMat.mat', 'A2');
+
+
+%% minimization stability 
+ 
+
+% 1) Load saved estimates ──────────────────────────────────────────────
+load('est_ind__unrestricted.mat','theta_hat')    % fminunc initial
+load('est_ind__restricted.mat','theta_hat2')  % fmincon initial
+load('est_ind__unrestrictedMat.mat','A')    % struct array from fminunc runs
+load('est_ind__restrictedMat.mat','A2')  % struct array from fmincon runs
+
+%── 2) Stack into one big matrix ────────────────────────────────────────
+N = numel(A);               % number of additional inits per optimizer
+p = numel(theta_hat);       % dimension of theta
+
+M = 2*(N+1);                % total number of runs
+allTheta = zeros(M, p);
+
+% fminunc block
+allTheta(1,   :) = theta_hat';
+for i = 1:N
+    allTheta(1+i, :) = A(i).theta_hat';
+end
+
+% fmincon block
+base = N+1;
+allTheta(base+1,   :) = theta_hat2';
+for i = 1:N
+    allTheta(base+1+i, :) = A2(i).theta_hat';
+end
+
+% ── 3) Compute dispersion statistics ─────────────────────────────────────
+mean_theta   = mean(allTheta, 1);       % 1×p
+std_theta    = std(allTheta, 0, 1);     % 1×p
+var_theta    = var(allTheta, 0, 1);     % 1×p
+cov_theta    = cov(allTheta);           % p×p covariance matrix
+cv_theta     = std_theta ./ abs(mean_theta);      % 1×p coefficient of variation
+
+%── 4) Display a summary table ──────────────────────────────────────────
+paramNames = { ...
+    'beta_bone', 'beta_sperm', 'beta_oil', ...     % β parameters
+    'alpha_bone','alpha_sperm','alpha_oil', ...    % α parameters
+    'delta_bone','delta_sperm','delta_oil', ...    % δ parameters
+    'gamma0','gamma1', ...                         % γ parameters
+    'sigma_bone','sigma_sperm','sigma_oil' ...    % σ_ω parameters
+}'; %paramNames = compose("theta%02d", 1:p)';  
+params_tab = table(mean_theta', std_theta', var_theta', cv_theta', ...
+          'VariableNames', {'Mean','StdDev','Variance','CV'}, ...
+          'RowNames', paramNames);
+disp(params_tab)
+
+
+% model fit. 
+
+
+% moments in the data 
+% assume T is your table
+productIDs = unique(T.productID);
+
+
+nProd      = numel(productIDs);
+
+%pre‐allocate
+meanY   = zeros(nProd,1);
+shareD1 = zeros(nProd,1);
+
+for i = 1:nProd
+    pid      = productIDs(i);
+    mask     = T.productID == pid;
+    meanY(i) = mean( T.Y(mask) );
+    if d is already 0/1 numeric, mean gives the share of ones
+    shareD1(i) = mean( T.d(mask) == 1 );
+end
+
+% assemble into a table
+summaryTbl = table( productIDs, meanY, shareD1, ...
+    'VariableNames',{'productID','meanY','shareD_d_eq_1'} )
+
+
+
+%%
+
+s_omega = theta_hat(12:14); 
+alpha = theta_hat(4:6); 
+delta = theta_hat(7:9); 
+beta = theta_hat(1:3); 
+gamma0 = theta_hat(10); 
+gamma1 = theta_hat(11); 
+J = 3; 
+ 
+
+Tsim = IE11_gen_data(T, J, s_omega, alpha, delta, beta, gamma0, gamma1); 
+productIDs = unique(Tsim.productID);
+nProd      = numel(productIDs);
+
+meanY_sim   = zeros(nProd,1);
+shareD1_sim = zeros(nProd,1);
+
+for i = 1:nProd
+    pid         = productIDs(i);
+    mask        = Tsim.productID == pid;
+    meanY_sim(i)   = mean( Tsim.Y_vj(mask) );
+    shareD1_sim(i) = mean( Tsim.isPositive(mask) );
+end
+
+disp('Summary statistics of simulated data using estimated params. ')
+summarySim = table( productIDs, meanY_sim, shareD1_sim, ...
+    'VariableNames',{'productID','meanY','shareD_d_eq_1'} );
+disp(summarySim);
+
+
+
+%%% Functions %%%%%% 
+
+
+function Tsim = IE11_gen_data(T, J, s_omega, alpha, delta, beta, gamma0, gamma1)
+
+%differences with IE10_gen_data: 
+%1.instead of simulating the durations and the tonnage uses the actual
+%duration and tonnage. Receives as input T which is the table with the
+%actual data. 
+
+ % beta      - J×2 matrix of covariate coefficients (product-specific)  <-- CHANGED
+
+
+%find unique captains
+capt_vec = unique(T.captainID);
+C = numel(capt_vec);
+N  = height(T);
+voyages = unique(T.voyageID); 
+
+%Pre‐allocate the “long” vectors exactly as before
+captainID = zeros(N,1);
+Nvoy = zeros(N,1);
+productID = zeros(N,1);
+
+X1        = zeros(N,1);
+
+a_c       = zeros(N,1);
+omega_vj  = zeros(N,1);   % STILL a scalar per row, but filled from a J‐vector
+log_wvj   = zeros(N,1);
+P_pos     = zeros(N,1);
+isPositive= zeros(N,1);
+Y_vj      = zeros(N,1);
+Dur       = zeros(N,1); 
+
+idx = 0;
+
+
+%Pre‐draw all a_c for each captain
+true_ac = randn(C,1);
+
+
+for k = 1:numel(voyages)
+    vid = voyages(k); % voyage id 
+    rows = find(T.voyageID == vid);
+    %Draw J‐vector of omegas for this voyage
+    Omega_vec = mvnrnd(zeros(1,J), s_omega');
+    
+    %Fill in each product‐row for this voyage
+    for r = rows'
+        c   = T.captainID(r);
+        j   = T.productID(r);
+        x1  = T.X1(r);
+        tau = T.Tau(r);
+        
+        captainID(r) = c;
+        Nvoy(r)      = T.n_voy(r);
+        productID(r) = j;
+        X1(r)        = x1;
+        X2(r)        = rand > 0.5;
+        a_c(r)       = true_ac(c);
+        omega_vj(r)  = Omega_vec(j);
+        
+        %Linear index utility
+        log_wvj(r) = beta(j,1)*x1 + delta(j)*a_c(r) + omega_vj(r);
+        %Probability of positive outcome
+        P_pos(r) = 1/(1 + exp(gamma0 - gamma1 * log_wvj(r)));
+        isPositive(r) = rand < P_pos(r);
+        
+        %Generate output Y
+        if isPositive(r)
+            Y_vj(r) = (tau * exp(log_wvj(r)))^alpha(j);
+        else
+            Y_vj(r) = 0;
+        end
+        Dur(r) = tau;
+    end
+end
+
+%Pack results into a table
+Tsim = table( captainID, Nvoy, productID, X1, a_c, omega_vj, ...
+               log_wvj, P_pos, isPositive, Y_vj, Dur, ...
+               'VariableNames', { 'captainID','Nvoy','productID', ...
+                                   'X1','a_c','omega_vj', ...
+                                   'log_wvj','P_pos','isPositive', ...
+                                   'Y_vj','Duration' } );
+
+end

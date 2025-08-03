@@ -1,0 +1,31 @@
+
+\begin{table}[htbp]
+   \caption{\label{tab:n_voyage} Effect of Experience on Production}
+   \centering
+   \begin{tabular}{lccccccccc}
+      \tabularnewline \midrule \midrule
+      Dependent Variable: & \multicolumn{9}{c}{Whole sample }\\
+      Model:        & (1)            & (2)     & (3)            & (4)            & (5)     & (6)     & (7)            & (8)     & (9)\\  
+      \midrule
+      \emph{Variables}\\
+      l\_re\_prod   & -0.546$^{***}$ & 0.032   & -0.722$^{***}$ & -0.288$^{***}$ & -0.023  & -0.146  & -0.121$^{***}$ & 0.025   & -0.170$^{***}$\\   
+                    & (0.098)        & (0.071) & (0.242)        & (0.068)        & (0.104) & (0.166) & (0.046)        & (0.031) & (0.051)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      mastercode    & Yes            &         & Yes            & Yes            &         & Yes     & Yes            &         & Yes\\  
+      vesselcode    &                & Yes     & Yes            &                & Yes     & Yes     &                & Yes     & Yes\\  
+      yearout       &                &         & Yes            &                &         & Yes     &                &         & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations  & 598            & 598     & 598            & 538            & 538     & 538     & 1,565          & 1,565   & 1,565\\  
+      R$^2$         & 0.76682        & 0.78581 & 0.99414        & 0.59764        & 0.74042 & 0.97536 & 0.39794        & 0.67250 & 0.84284\\  
+      Within R$^2$  & 0.25111        & 0.00092 & 0.51748        & 0.07458        & 0.00056 & 0.04319 & 0.01386        & 0.00080 & 0.03696\\  
+      \midrule \midrule
+      \multicolumn{10}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+   \end{tabular}
+   
+   \par \raggedright 
+   The first three columns use the sample with 3 voyages, the next 3 cols use the sample with 4 voyages and so on. 
+\end{table}
+
+

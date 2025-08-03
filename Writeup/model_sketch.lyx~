@@ -1,0 +1,397 @@
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+% Added by lyx2lyx
+\setlength{\parskip}{\medskipamount}
+\setlength{\parindent}{0pt}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children no
+\language english
+\language_package default
+\inputencoding auto-legacy
+\fontencoding auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1.25in
+\topmargin 1.25in
+\rightmargin 1.25in
+\bottommargin 1.25in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\tracking_changes false
+\output_changes false
+\change_bars false
+\postpone_fragile_content false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Sketch of a model
+\end_layout
+
+\begin_layout Author
+Lucas Condeza
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Yale University
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ports are indexed by 
+\begin_inset Formula $p$
+\end_inset
+
+,
+ we group them into West and East coast,
+ 
+\begin_inset Formula $p\in{E,W}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Entry/exit 
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Production 
+\end_layout
+
+\begin_layout Standard
+- Ships are indexed by 
+\begin_inset Formula $s\in{1,...,S}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+The state variables 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+One could also consider that the captain of the ship does not know the price of the product and has beliefs based on the price he saw the last time he was at the port.
+ 
+\end_layout
+
+\end_inset
+
+of a ship are:
+\end_layout
+
+\begin_layout Enumerate
+their position,
+ they start period 
+\begin_inset Formula $t$
+\end_inset
+
+ at sea or at a port
+\end_layout
+
+\begin_layout Enumerate
+In the case they are at sea the amount of product on the ship's hold
+\end_layout
+
+\begin_layout Enumerate
+The price of the product
+\end_layout
+
+\begin_layout Standard
+Ships at sea have to decide whether to return.
+ 
+\end_layout
+
+\begin_layout Standard
+From this problem one obtains the per period profits of ships.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Entry/exit
+\end_layout
+
+\begin_layout Standard
+Given the production process,
+ and beliefs about the future path of prices ship owners decide whether to enter or exit
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+We assume that ships are homogenous,
+ one could also consider the type of ship in the enter decision.
+\end_layout
+
+\end_inset
+
+.
+ Producing a ship has a fixed cost of 
+\begin_inset Formula $F$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+At
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+produce a single product 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Later we can introduce the fact that they product oil,
+ sperm and bones.
+ And maybe one could endogeneize the share of each product produced.
+\end_layout
+
+\end_inset
+
+ and sell this product at an exogenously given price 
+\begin_inset Formula $p_{t},$
+\end_inset
+
+.
+ Ships take this price as given 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Our sample has around 100 voyages per year.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+The outputs (sperm and whale oil) are commodities.
+ The price is taken as given by the individual ships.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $ $
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+voyage duration:
+ can be thought as an exogenously determined random variable (the ship goes out and when it is full the ship returns) or as an optimal stopping problem (state vars are storage space and fish conditions:
+ there are many or few whales)
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $ $
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\backslash
+vspace{3cm}
+\end_layout
+
+\begin_layout Standard
+- Longer (time and distance wise) trips have higher prodcution of oil bones and sperm.
+ Not clear what process generates this pattern
+\end_layout
+
+\begin_layout Standard
+- matching:
+ ships are matched with captains.
+ Captains have an underlying quality and 1.
+ if there is evidence of learning one can introduce learning and 2.
+ have a history that is used by ship owners to determine their quality.
+ The demand for captains will depend on the number of ships.
+ If demand decreases only the ‘best’ captains are matched.
+\end_layout
+
+\begin_layout Standard
+- The outputs (sperm and whale oil) are commodities.
+ The price is taken as given by the individual ships.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $ $
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+- Note that a ship is a multi-product firm.
+ There are two modeling options 1.
+ ratios are exogenously determined (e.g.
+ every ship goes and gets some quantitiy of each prodcut) or 2.
+ the ratio of outputs is endogenous (e.g.
+ if bones are spetially expensive at some point then
+\end_layout
+
+\begin_layout Standard
+- Note that the sperm and whale oil price have an inverted u-shape.
+ but the whalebones are increasing.
+ Does the ratio of the different products change as a response to this change in the ratio of prices?
+\end_layout
+
+\begin_layout Standard
+- 
+\end_layout
+
+\begin_layout Standard
+- Ship entry/exit:
+ ships of a given size are produced given an expected path of prices,
+ they depreciate over time and when the scrap value is higher than the present value of profits they are sold as scrap
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $ $
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $ $
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $ $
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
