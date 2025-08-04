@@ -32,12 +32,12 @@ Tau = Tsim.Duration;
 c_id = Tsim.captainID; % use built‑in captain ID
 
 % parameter guess. 
-in_beta   = [0.01; 0.01; 0.01];          % initial β's
+in_beta   = [0.1; 0.1; 0.1];          % initial β's
 in_alpha     = [1; 1; 1];       % initial   α's (α=1)
 in_delta = [1 ; 1; 1]; %6:8
 in_gamma0 = .4;               % initial γ0 9 
 in_gamma1 = 1;               % initial γ1 10
-in_somega = [1, 0, 0; 0, 3, 0; 0, 0, .5];       % initial σ_{ω,j} (σ=1)
+in_somega = [1, 0.5, 0; 0.5, 3, 0; 0, 0, .5];       % initial σ_{ω,j} (σ=1)
 
 theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega(:)];
 theta_chol0 = to_chol_theta(theta0); % theta reduced 
@@ -45,47 +45,42 @@ theta_chol0 = to_chol_theta(theta0); % theta reduced
 [xk, wk] = HG(15);  % 30-node rule
 [xk2, wk2] = HG2D(15); 
 [xk3, wk3] = HG3D(15);
-%%
-a_c = .76; d_v = d(1:3); Y_v = Y(1:3); x_v = Xmat(3,:)'; tau_v = Tau(3); 
 
-a_c = .76; d_v = d(4:6); Y_v = Y(4:6); x_v = Xmat(4,:)'; tau_v = Tau(4); 
+% CODE USED TO CHECK THE FUNCTIONS
+% 
+% a_c = .76; d_v = d(1:3); Y_v = Y(1:3); x_v = Xmat(3,:)'; tau_v = Tau(3); 
+% 
+% a_c = .76; d_v = d(4:6); Y_v = Y(4:6); x_v = Xmat(4,:)'; tau_v = Tau(4); 
+% 
+% a_c = .76; d_v = d(19:21); Y_v = Y(19:21); x_v = Xmat(19,:)'; tau_v = Tau(19); 
+% 
+% a_c = .76; d_v = d(28:30); Y_v = Y(28:30); x_v = Xmat(28,:)'; tau_v = Tau(28); 
+% 
+% 
+% res = L_v_corr(theta0, a_c, d_v, Y_v, x_v, tau_v); 
+% res2 = L_v_corr_v2(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3); 
+% 
+% theta2 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; diag(in_somega)];
+% res3 = voyageLik(theta2, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
+% 
+% a_c = 76; 
+% d_c = d(1: J*Vmax); 
+% Y_c = Y(1: J*Vmax);
+% x_c = Xmat(1: J*Vmax);
+% tau_c = Tau(1: J*Vmax); 
+% theta = theta0; 
 
-a_c = .76; d_v = d(19:21); Y_v = Y(19:21); x_v = Xmat(19,:)'; tau_v = Tau(19); 
-
-a_c = .76; d_v = d(28:30); Y_v = Y(28:30); x_v = Xmat(28,:)'; tau_v = Tau(28); 
-
-
-res = L_v_corr(theta0, a_c, d_v, Y_v, x_v, tau_v); 
-res2 = L_v_corr_v2(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3); 
-
-theta2 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; diag(in_somega)];
-res3 = voyageLik(theta2, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
-
-%%
-
-a_c = 76; 
-d_c = d(1: J*Vmax); 
-Y_c = Y(1: J*Vmax);
-x_c = Xmat(1: J*Vmax);
-tau_c = Tau(1: J*Vmax); 
-theta = theta0; 
-
-%%
- 
-
-res5 = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
-
-tic
-res6 = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
-toc
-
-
-tic
-res7 = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
-toc
-
-%%
-res8 = globalLik_corr(theta, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+% res5 = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+% 
+% tic
+% res6 = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+% toc
+% 
+% tic
+% res7 = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+% toc
+%
+% res8 = globalLik_corr(theta, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
 
 %% Estimation 
 
