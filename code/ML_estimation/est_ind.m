@@ -71,11 +71,9 @@ options = optimoptions('fminunc', ...
 %Final log-likelihood at estimated parameters
 ll_hat = globalLik_v3(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk);
 
-save('est_ind__unrestricted', 'theta_hat')
+save('est_ind_unrestricted', 'theta_hat')
 
 %% Loop for different initial guess. 
-
-
 
 % set up
 nInits   = 10;                     % how many initials you want
@@ -121,18 +119,16 @@ options = optimoptions('fmincon', ...
     'MaxIterations',10, 'MaxFunctionEvaluations',3000);
 
 [theta_hat2, fval, exitflag, output] = fmincon(negLL, theta0, [], [], [], [], lb, [], [], options);
+save('est_ind_restricted', 'theta_hat2')
 
-save('est_ind__restricted', 'theta_hat2')
+A2(nInits) = struct('theta_hat',[],'fval',[],'exitflag',[],'output',[]); % preallocate struct array
 
-
-A2(N) = struct();     % preallocate struct array
-
-for i = 1:N
+for i = 1:nInits
     theta0 = theta0_mat(:, i);
 
     [theta_hat2, fval, exitflag, output] = fmincon(negLL, theta0, [], [], [], [], lb, [], [], options);
 
-    Store results
+    %Store results
     A2(i).theta_hat = theta_hat2;   % column vector
     A2(i).fval      = fval;        % scalar
     A2(i).exitflag  = exitflag;    % scalar
@@ -146,10 +142,10 @@ save('est_ind_restrictedMat.mat', 'A2');
  
 
 % 1) Load saved estimates ──────────────────────────────────────────────
-load('est_ind__unrestricted.mat','theta_hat')    % fminunc initial
-load('est_ind__restricted.mat','theta_hat2')  % fmincon initial
-load('est_ind__unrestrictedMat.mat','A')    % struct array from fminunc runs
-load('est_ind__restrictedMat.mat','A2')  % struct array from fmincon runs
+load('est_ind_unrestricted.mat','theta_hat')    % fminunc initial
+load('est_ind_restricted.mat','theta_hat2')  % fmincon initial
+load('est_ind_unrestrictedMat.mat','A')    % struct array from fminunc runs
+load('est_ind_restrictedMat.mat','A2')  % struct array from fmincon runs
 
 %── 2) Stack into one big matrix ────────────────────────────────────────
 N = numel(A);               % number of additional inits per optimizer
@@ -191,8 +187,31 @@ params_tab = table(mean_theta', std_theta', var_theta', cv_theta', ...
           'RowNames', paramNames);
 disp(params_tab)
 
+%% select minimum of all the local minima
+fval_unc    = negLL(theta_hat);
+fval_con    = negLL(theta_hat2);
+fvals_unc   = [A.fval];
+fvals_con   = [A2.fval];
 
-% model fit. 
+allFvals    = [fval_unc, fval_con, fvals_unc, fvals_con];
+allThetas   = [theta_hat, theta_hat2, reshape([A.theta_hat], [], numel(A)), reshape([A2.theta_hat], [], numel(A2))];
+
+
+% Find the index of the minimal negLL
+[~, bestIdx] = min(allFvals);
+
+% Select best parameter vector
+bestTheta   = allThetas(:, bestIdx);
+
+
+% Present best parameter estimates
+best_params_tbl = table(bestTheta, ...
+    'RowNames', paramNames, ...
+    'VariableNames', {'bestTheta'});
+disp('Best parameter estimates:');
+disp(best_params_tbl);
+
+%% model fit. 
 
 
 % moments in the data 
@@ -210,7 +229,7 @@ for i = 1:nProd
     pid      = productIDs(i);
     mask     = T.productID == pid;
     meanY(i) = mean( T.Y(mask) );
-    if d is already 0/1 numeric, mean gives the share of ones
+    %if d is already 0/1 numeric, mean gives the share of ones
     shareD1(i) = mean( T.d(mask) == 1 );
 end
 
@@ -222,120 +241,66 @@ summaryTbl = table( productIDs, meanY, shareD1, ...
 
 %%
 
-s_omega = theta_hat(12:14); 
-alpha = theta_hat(4:6); 
-delta = theta_hat(7:9); 
-beta = theta_hat(1:3); 
-gamma0 = theta_hat(10); 
-gamma1 = theta_hat(11); 
+s_omega = bestTheta(12:14); 
+alpha = bestTheta(4:6); 
+delta = bestTheta(7:9); 
+beta = bestTheta(1:3); 
+gamma0 = bestTheta(10); 
+gamma1 = bestTheta(11); 
 J = 3; 
  
-
-Tsim = IE11_gen_data(T, J, s_omega, alpha, delta, beta, gamma0, gamma1); 
-productIDs = unique(Tsim.productID);
+nSims = 100; 
+productIDs = unique(T.productID);
 nProd      = numel(productIDs);
 
-meanY_sim   = zeros(nProd,1);
-shareD1_sim = zeros(nProd,1);
 
-for i = 1:nProd
-    pid         = productIDs(i);
-    mask        = Tsim.productID == pid;
-    meanY_sim(i)   = mean( Tsim.Y_vj(mask) );
-    shareD1_sim(i) = mean( Tsim.isPositive(mask) );
-end
-
-disp('Summary statistics of simulated data using estimated params. ')
-summarySim = table( productIDs, meanY_sim, shareD1_sim, ...
-    'VariableNames',{'productID','meanY','shareD_d_eq_1'} );
-disp(summarySim);
-
-
-
-%%% Functions %%%%%% 
-
-
-function Tsim = IE11_gen_data(T, J, s_omega, alpha, delta, beta, gamma0, gamma1)
-
-%differences with IE10_gen_data: 
-%1.instead of simulating the durations and the tonnage uses the actual
-%duration and tonnage. Receives as input T which is the table with the
-%actual data. 
-
- % beta      - J×2 matrix of covariate coefficients (product-specific)  <-- CHANGED
-
-
-%find unique captains
-capt_vec = unique(T.captainID);
-C = numel(capt_vec);
-N  = height(T);
-voyages = unique(T.voyageID); 
-
-%Pre‐allocate the “long” vectors exactly as before
-captainID = zeros(N,1);
-Nvoy = zeros(N,1);
-productID = zeros(N,1);
-
-X1        = zeros(N,1);
-
-a_c       = zeros(N,1);
-omega_vj  = zeros(N,1);   % STILL a scalar per row, but filled from a J‐vector
-log_wvj   = zeros(N,1);
-P_pos     = zeros(N,1);
-isPositive= zeros(N,1);
-Y_vj      = zeros(N,1);
-Dur       = zeros(N,1); 
-
-idx = 0;
-
-
-%Pre‐draw all a_c for each captain
-true_ac = randn(C,1);
-
-
-for k = 1:numel(voyages)
-    vid = voyages(k); % voyage id 
-    rows = find(T.voyageID == vid);
-    %Draw J‐vector of omegas for this voyage
-    Omega_vec = mvnrnd(zeros(1,J), s_omega');
-    
-    %Fill in each product‐row for this voyage
-    for r = rows'
-        c   = T.captainID(r);
-        j   = T.productID(r);
-        x1  = T.X1(r);
-        tau = T.Tau(r);
-        
-        captainID(r) = c;
-        Nvoy(r)      = T.n_voy(r);
-        productID(r) = j;
-        X1(r)        = x1;
-        X2(r)        = rand > 0.5;
-        a_c(r)       = true_ac(c);
-        omega_vj(r)  = Omega_vec(j);
-        
-        %Linear index utility
-        log_wvj(r) = beta(j,1)*x1 + delta(j)*a_c(r) + omega_vj(r);
-        %Probability of positive outcome
-        P_pos(r) = 1/(1 + exp(gamma0 - gamma1 * log_wvj(r)));
-        isPositive(r) = rand < P_pos(r);
-        
-        %Generate output Y
-        if isPositive(r)
-            Y_vj(r) = (tau * exp(log_wvj(r)))^alpha(j);
-        else
-            Y_vj(r) = 0;
-        end
-        Dur(r) = tau;
+% Run simulations and compute moments
+for s = 1:nSims
+    Tsim = IE11_gen_data(T, J, s_omega, alpha, delta, beta, gamma0, gamma1);
+    for i = 1:nProd
+        pid  = productIDs(i);
+        mask = Tsim.productID == pid;
+        meanY_all(i,s)   = mean(Tsim.Y_vj(mask));
+        shareD1_all(i,s) = mean(Tsim.isPositive(mask));
     end
 end
 
-%Pack results into a table
-Tsim = table( captainID, Nvoy, productID, X1, a_c, omega_vj, ...
-               log_wvj, P_pos, isPositive, Y_vj, Dur, ...
-               'VariableNames', { 'captainID','Nvoy','productID', ...
-                                   'X1','a_c','omega_vj', ...
-                                   'log_wvj','P_pos','isPositive', ...
-                                   'Y_vj','Duration' } );
+% Compute average moments across all simulations
+meanY_bar   = mean(meanY_all, 2);
+shareD1_bar = mean(shareD1_all, 2);
 
+% Display average summary statistics
+disp('Average summary statistics across 100 simulations:');
+summaryAvg = table(productIDs, meanY_bar, shareD1_bar, ...
+    'VariableNames', {'productID','meanY_avg','shareD_d_eq_1_avg'});
+disp(summaryAvg);
+
+
+%%
+alpha_alt = [1.13; 0.52; 0.63];  % new alphas
+theta_alt = bestTheta; 
+theta_alt(4:6) = alpha_alt; 
+negLL(theta_alt) %worse than the min of allFvals. 
+
+
+
+nSims_alt = 100; 
+meanY_alt   = zeros(nProd, nSims_alt);
+shareD1_alt = zeros(nProd, nSims_alt);
+for s = 1:nSims_alt
+    Tsim = IE11_gen_data(T, J, s_omega, alpha_alt, delta, beta, gamma0, gamma1);
+    for i = 1:nProd
+        pid  = productIDs(i);
+        mask = Tsim.productID == pid;
+        meanY_alt(i,s)   = mean(Tsim.Y_vj(mask));
+        shareD1_alt(i,s) = mean(Tsim.isPositive(mask));
+    end
 end
+meanY_bar_alt   = mean(meanY_alt, 2);
+shareD1_bar_alt = mean(shareD1_alt, 2);
+
+disp('Average moments with alternative alphas (100 sims):');
+summaryAlt = table(productIDs, meanY_bar_alt, shareD1_bar_alt, ...
+    'VariableNames',{'productID','meanY_avg','shareD_d_eq_1_avg'});
+disp(summaryAlt);
+

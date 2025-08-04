@@ -265,35 +265,3 @@ summarySim = table( productIDs, meanY_sim, shareD1_sim, ...
     'VariableNames',{'productID','meanY','shareD_d_eq_1'} );
 disp(summarySim);
 
-
-
-%%%% Functions %%%%%% 
-
- function theta_red = from_theta(theta)
-    % FROM_THETA  Extracts the 17 unique parameters from full 20×1 theta
-    %  theta: [β(3); α(3); δ(3); γ0; γ1; vec(Sigma_omega) (9)]
-    Sigma = reshape(theta(12:20), 3, 3);  % full 3×3 covariance matrix
-    theta_red = [
-        theta(1:11);      % β1–3, α1–3, δ1–3, γ0, γ1
-        Sigma(1,1);       % σ11
-        Sigma(2,2);       % σ22
-        Sigma(3,3);       % σ33
-        Sigma(1,2);       % σ12 = σ21
-        Sigma(1,3);       % σ13 = σ31
-        Sigma(2,3)        % σ23 = σ32
-    ];
- end
-
-
- function theta = to_theta(theta_red) 
-  %function to create the full vector based on the reduced vector. 
-
-  theta =  [    theta_red(1:11);           % copy β, α, δ, γ0, γ1
-    reshape([                   % reconstruct Σ_omega columnwise
-        theta_red(12), theta_red(15), theta_red(16);  ...
-        theta_red(15), theta_red(13), theta_red(17);  ...
-        theta_red(16), theta_red(17), theta_red(14)       
-    ], 9, 1)
-];
-
- end
