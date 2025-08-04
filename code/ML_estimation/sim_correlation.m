@@ -3,7 +3,7 @@ clc
 
 rng(123)
 % parameters 
-C = 3000;       % Number of captains 
+C = 40;       % Number of captains 
 J = 3;         % 3 product‐types: bones, oil, sperm
 Vmax = 20;     % maximum of captain voyages. 
 
@@ -40,7 +40,7 @@ in_gamma1 = 1;               % initial γ1 10
 in_somega = [1, 0, 0; 0, 3, 0; 0, 0, .5];       % initial σ_{ω,j} (σ=1)
 
 theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega(:)];
-theta_red0 = from_theta(theta0); % theta reduced 
+theta_chol0 = to_chol_theta(theta0); % theta reduced 
 
 [xk, wk] = HG(15);  % 30-node rule
 [xk2, wk2] = HG2D(15); 
@@ -89,17 +89,17 @@ res8 = globalLik_corr(theta, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3);
 
 %% Estimation 
 
-negLL_red = @(theta_red) -globalLik_corr(to_theta(theta_red), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
+negLL_red = @(chol_theta) -globalLik_corr(to_theta(chol_theta), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
 
 % Optimization options
 options = optimoptions('fminunc', ...
     'Algorithm','quasi-newton', ...
     'Display','iter', ...
-    'MaxIterations',10, ...
-    'MaxFunctionEvaluations', 10);
+    'MaxIterations',100, ...
+    'MaxFunctionEvaluations', 100);
 
 
-[theta_red_hat, fval, exitflag, output] = fminunc(negLL_red, theta_red0, options );
+[theta_red_hat, fval, exitflag, output] = fminunc(negLL_red, theta_chol0, options );
 
 theta_hat = to_theta(theta_red_hat); % recover the full vector 
 ll_hat    = globalLik_corr(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); % evaluate function. 
