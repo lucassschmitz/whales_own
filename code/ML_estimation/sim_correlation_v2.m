@@ -55,10 +55,15 @@ options = optimoptions('fminunc', ...
     'MaxIterations',100, ... 
     'MaxFunctionEvaluations', 100, ...
     'OptimalityTolerance',1e-20,...
-    'StepTolerance',      1e-15) 
+    'StepTolerance',      1e-10, ...
+    'FiniteDifferenceStepSize',1e-4) %bigger step size to avoid zero gradietn. 
  
 [theta_red_hat, fval, exitflag, output] = fminunc(negLL_red, theta_chol0, options );
 
 
 theta_hat = to_theta(theta_red_hat); % recover the full vector 
 ll_hat    = globalLik_corr(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); % evaluate function. 
+
+%%
+opts2 = optimset('Display','iter','TolFun',1e-8,'TolX',1e-8);
+[theta_red_hat2, fval2] = fminsearch(negLL_red, theta_chol0, opts2);

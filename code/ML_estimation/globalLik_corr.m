@@ -5,7 +5,7 @@ function L = globalLik_corr(theta, d_vec, Y_vec, X_mat, Tau_vec, c_id, xk, wk, x
 %   d_vec,Y_vec,X_mat,Tau_vec  data stacks [J·Ntotal×1 or ×p]
 %   c_id     [J·Ntotal×1] captain IDs (1...C)
 %   xk,wk,...  GH nodes & weights
-    disp(theta(end-9:end)')
+    %disp(theta(end-9:end)')
     C = max(c_id);
     logL_c = zeros(C,1);
 
