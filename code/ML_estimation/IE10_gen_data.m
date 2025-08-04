@@ -1,6 +1,6 @@
 
 function Tsim = IE10_gen_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1)
-
+% does allow for correlation in the errors. 
 %differences with IE9_gen_data: 
 % 1.  we tweak the function to produce data similar to the real data
 % 2. we allow for product specific beta. 

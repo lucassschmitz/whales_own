@@ -1,6 +1,6 @@
 
-function log_Lc_int = L_c_int(theta, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk, xk2, wk2, xk3, wk3)
-% L_c_int  Captain-level log-likelihood integrated over a_c ~ N(0,1)
+function log_Lc_int = L_c_corr_int(theta, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk, xk2, wk2, xk3, wk3)
+% L_c_corr is for a given captain skill, this function integrates over a_c.  
 %   Integrates L_c_corr(theta, a_c) using 1D Gauss–Hermite quadrature
 %
     % Number of GH nodes

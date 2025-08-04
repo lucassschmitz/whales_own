@@ -40,8 +40,7 @@ in_gamma1 = 1;               % initial γ1 10
 in_somega = [1, 0, 0; 0, 3, 0; 0, 0, .5];       % initial σ_{ω,j} (σ=1)
 
 theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega(:)];
-theta_red0 = from_theta(theta0); % theta reduced 
-
+theta
 [xk, wk] = HG(15);  % 30-node rule
 [xk2, wk2] = HG2D(15); 
 [xk3, wk3] = HG3D(15);
@@ -76,18 +75,20 @@ theta = theta0;
 res5 = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
 
 tic
-res6 = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+res6 = L_c_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 toc
 
 
 tic
-res7 = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+rest7 = captainLik_full(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 toc
 
-%%
+
 res8 = globalLik_corr(theta, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
 
 %% Estimation 
+
+theta_red0 = from_theta(th_g); %theta reduced 
 
 negLL_red = @(theta_red) -globalLik_corr(to_theta(theta_red), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
 
@@ -95,8 +96,8 @@ negLL_red = @(theta_red) -globalLik_corr(to_theta(theta_red), d, Y, Xmat, Tau, c
 options = optimoptions('fminunc', ...
     'Algorithm','quasi-newton', ...
     'Display','iter', ...
-    'MaxIterations',10, ...
-    'MaxFunctionEvaluations', 10);
+    'MaxIterations',3000, ...
+    'MaxFunctionEvaluations', 3000);
 
 
 [theta_red_hat, fval, exitflag, output] = fminunc(negLL_red, theta_red0, options );

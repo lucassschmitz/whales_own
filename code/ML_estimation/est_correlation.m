@@ -84,7 +84,7 @@ theta_hat = to_theta(theta_red_hat); % recover the full vector
 ll_hat    = globalLik_corr(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); % evaluate function. 
 
 
-save('est_corr__unrestricted', 'theta_hat')
+save('est_corr_unrestricted', 'theta_hat')
 
 
 %% Loop for different initial guess. 
@@ -138,7 +138,7 @@ options = optimoptions('fmincon', ...
 [theta_red_hat2, fval, exitflag, output] = fmincon(negLL_red, theta0_red, [], [], [], [], lb, [], [], options);
 
 
-save('est_corr__restricted', 'theta_hat2')
+save('est_corr_restricted', 'theta_hat2')
 
 
 A2(N) = struct();     % preallocate struct array

@@ -1,5 +1,5 @@
 
-function log_Lc = captainLik_full(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
+function log_Lc = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
 % captainLik_full  Combined captain-level log-likelihood
 %   Integrates over captain quality a_c and sums voyage-level logs
 %   theta    full parameter vector (β, α, δ, γ0, γ1, Σ_ω entries)

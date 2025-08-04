@@ -29,7 +29,7 @@ function L = globalLik_corr(theta, d_vec, Y_vec, X_mat, Tau_vec, c_id, xk, wk, x
         X_c    = X_mat(mask, :);
         Tau_c  = Tau_vec(mask);
 
-        logL_c(c) = captainLik_full(theta, d_c, Y_c, X_c, Tau_c, ...
+        logL_c(c) = L_c_corr_int_v2(theta, d_c, Y_c, X_c, Tau_c, ...
                                     xk, wk, xk2, wk2, xk3, wk3);
     end
 
