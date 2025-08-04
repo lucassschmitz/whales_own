@@ -8,11 +8,13 @@ J = 3;         % 3 product‐types: bones, oil, sperm
 Vmax = 20;     % maximum of captain voyages. 
 
 s_omega = 2 * eye(J);     % std. dev. of product‐specific noise omega_vj
-s_omega = [1,1,1; 1,1,1; 1,1,1];
+s_omega = [2 1 1; 1 2 1; 1 1 2];
+disp(['Lowest eigenvalue = ' num2str(min(eig(s_omega)))]);
 
+ 
 alpha  = [1.55; .8; .82];    % exponent 
 delta  = [2; 2.3; 2.9];    % coefficient of captain random effects
-beta   = [.0009, 0; 0.011, 0; 0.009, 0 ];        % coefficient of ship chars (weight and type).
+beta   = [.0019, 0; 0.021, 0; 0.029, 0 ];        % coefficient of ship chars (weight and type).
 gamma0 = 2;                % intercept for zero‐vs‐positive
 gamma1 = 2;                % slope on log(w_{1vj})
 
@@ -69,7 +71,6 @@ theta_chol0 = to_chol_theta(theta0); % theta reduced
 % x_c = Xmat(1: J*Vmax);
 % tau_c = Tau(1: J*Vmax); 
 % theta = theta0; 
-
 % res5 = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 % 
 % tic
@@ -77,14 +78,49 @@ theta_chol0 = to_chol_theta(theta0); % theta reduced
 % toc
 % 
 % tic
-% res7 = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
-% toc
-%
-% res8 = globalLik_corr(theta, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+ % res7 = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+ % toc
+%res8 = globalLik_corr(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+
+
+
+ %see if there is a particular captain that produces underflow 
+
+
+c = 3; %captain id
+for c = 1: 40
+    mask   = (c_id == c);
+    d_c    = d(mask);
+    Y_c    = Y(mask);
+    X_c    = Xmat(mask, :);
+    Tau_c  = Tau(mask);
+    
+    res9 = L_c_corr_int_v2(theta0, d_c, Y_c, X_c, Tau_c, xk, wk, xk2, wk2, xk3, wk3);
+end
+
+theta_chol02 = theta_chol0; 
+theta_chol02(1:3) = [.2; .2; .2];
 
 %% Estimation 
 
 negLL_red = @(chol_theta) -globalLik_corr(to_theta(chol_theta), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
+
+
+% Add this after creating theta_chol0
+fprintf('--- Starting Diagnostic ---\n');
+initial_negLL = negLL_red(theta_chol0);
+initial_negLL2 = negLL_red(theta_chol02);
+
+fprintf('Initial objective function value: %f\n', initial_negLL);
+if isnan(initial_negLL) || isinf(initial_negLL)
+    fprintf('WARNING: Objective function returned NaN or Inf!\n');
+end
+fprintf('--- End Diagnostic ---\n');
+
+theta_chol02 = theta_chol0; 
+theta_chol02(1:3) = [.2; .2; .2];
+initial_negLL2 = negLL_red(theta_chol02);
+%%
 
 % Optimization options
 options = optimoptions('fminunc', ...
