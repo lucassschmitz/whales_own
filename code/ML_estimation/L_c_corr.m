@@ -1,9 +1,6 @@
 
-function log_Lc = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
-% THE PROBLEM OF THIS FUNCTION IS THAT SUMS VOYAGE LIKELIHOODS WITHOUT
-% HAVING LOGED THEM, AND EVEN IF IT HAD HAD IT WOULD NOT BE USEFUL SINCE WE
-% DO WANT THE CAPTAIN LIKELIHOOD WHICH DOES NOT USE THE LOG VOYAGES BUT THE
-% VOYAGES . 
+function logL = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
+% PROBLEM: this function does not use the log-sum-exp trick, causing underflowing issues. 
 % 
 % L_c_corr  Captain-level log-likelihood conditional on quality a_c
 %   theta        full parameter vector (including product betas, alphas,
@@ -25,6 +22,7 @@ function log_Lc = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, x
     Ncap  = numel(d_c) / J;
     logL  = 0;
 
+    logL = 0 ; % initialize log-likelihood 
     % Loop over each voyage for this captain
     for v = 1:Ncap
         idx    = (v-1)*J + (1:J);
@@ -34,11 +32,9 @@ function log_Lc = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, x
         tau_v  = tau_c(idx(1));
 
         % Voyage-level log-likelihood with correlated ω (conditional on a_c)
-        logL_v = L_v_corr_v2(theta, a_c, d_v, Y_v, X_v, tau_v, ...
+        L_v = L_v_corr_v2(theta, a_c, d_v, Y_v, X_v, tau_v, ...
                             xk, wk, xk2, wk2, xk3, wk3);
 
-        logL = logL + logL_v;
+        logL = logL + log(L_v);
     end
-
-    log_Lc = logL;
 end

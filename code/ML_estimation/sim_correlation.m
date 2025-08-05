@@ -65,17 +65,21 @@ res2 = L_v_corr_v2(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3
 % theta2 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; diag(in_somega)];
 % res3 = voyageLik(theta2, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
 
-a_c = 76; 
-d_c = d(1: J*Vmax); 
-Y_c = Y(1: J*Vmax);
-x_c = Xmat(1: J*Vmax);
-tau_c = Tau(1: J*Vmax); 
+
+
+
+mask   = (c_id == 12);
+d_c    = d(mask);
+Y_c    = Y(mask);
+x_c    = Xmat(mask, :);
+tau_c  = Tau(mask);
+a_c = 0; 
 theta = theta0; 
 res5 = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 
 tic
 res6 = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
- toc
+toc
 % 
 tic
 res7 = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
@@ -87,16 +91,7 @@ toc
  %see if there is a particular captain that produces underflow 
 
 
-% c = 3; %captain id
-% for c = 1: 40
-%     mask   = (c_id == c);
-%     d_c    = d(mask);
-%     Y_c    = Y(mask);
-%     X_c    = Xmat(mask, :);
-%     Tau_c  = Tau(mask);
-% 
-%     res9 = L_c_corr_int_v2(theta0, d_c, Y_c, X_c, Tau_c, xk, wk, xk2, wk2, xk3, wk3);
-% end
+
 
 %% Estimation 
 

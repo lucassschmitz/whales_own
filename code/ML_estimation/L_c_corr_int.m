@@ -22,3 +22,6 @@ function log_Lc_int = L_c_corr_int(theta, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk,
     M      = max(log_tk);
     log_Lc_int = M + log(sum(exp(log_tk - M)));
 end
+
+
+ 
