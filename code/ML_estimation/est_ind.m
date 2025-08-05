@@ -105,7 +105,7 @@ end
 save('est_ind_unrestrictedMat.mat','A');
 
 
-%%
+%% restricted minimization 
 theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega];
 
 %Lower bounds for non-negativity on alpha (4:6),  delta (7:9), gamma1(11), sigma_omega(12:14)
@@ -136,6 +136,11 @@ for i = 1:nInits
 end
 
 save('est_ind_restrictedMat.mat', 'A2');
+
+%% nelder mead minimization 
+
+opts2 = optimset('Display','iter','TolFun',1e-8,'TolX',1e-8);
+
 
 
 %% minimization stability 

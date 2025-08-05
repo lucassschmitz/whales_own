@@ -33,8 +33,7 @@ function log_Lc = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2,
             tau_v = tau_c(idx(1));
 
             % Voyage-level log-likelihood (multivariate GH)
-            logL = logL + L_v_corr_v2(theta, a_c, d_v, Y_v, x_v, tau_v, ...
-                                      xk, wk, xk2, wk2, xk3, wk3);
+            logL = logL + log(L_v_corr_v2(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3));
         end
 
         log_tk(qi) = log_w(qi) + logL;

@@ -1,5 +1,10 @@
 
 function log_Lc = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
+% THE PROBLEM OF THIS FUNCTION IS THAT SUMS VOYAGE LIKELIHOODS WITHOUT
+% HAVING LOGED THEM, AND EVEN IF IT HAD HAD IT WOULD NOT BE USEFUL SINCE WE
+% DO WANT THE CAPTAIN LIKELIHOOD WHICH DOES NOT USE THE LOG VOYAGES BUT THE
+% VOYAGES . 
+% 
 % L_c_corr  Captain-level log-likelihood conditional on quality a_c
 %   theta        full parameter vector (including product betas, alphas,
 %                deltas, gamma0, gamma1, and covariance elements of ω)

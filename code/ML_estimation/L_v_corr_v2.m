@@ -2,7 +2,7 @@
 function L_v  = L_v_corr_v2(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3)
     % implements L_v_corr (produces same result) but trying to optimize the integration,
     % spetially when the voyage produces 0 output the 3D integral is hard to compute. 
-    % implements voyage likelihood given with correlation  
+    % implements voyage likelihood (NOT log-likelihood) given with correlation  
     J = numel(d_v);
     p = numel(x_v);
     
