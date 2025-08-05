@@ -64,8 +64,8 @@ global_lik = globalLik_corr_v2(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, 
 %%
 num_inits = 11; 
 %initialize matrices to store the results 
-all_theta2   = nan(numel(theta0),    2*(num_inits+1));
-all_fvals2    = nan(1,        2*(num_inits+1));
+all_theta   = nan(numel(theta0),    2*(num_inits+1));
+all_fvals    = nan(1,        2*(num_inits+1));
 
 
 theta_chol0 = to_chol_theta(theta0); 
@@ -77,14 +77,14 @@ options = optimoptions('fminunc', ...
     'Algorithm','quasi-newton', ...
     'Display','iter', ...
     'MaxIterations',500, ...
-    'MaxFunctionEvaluations',20);
+    'MaxFunctionEvaluations',4000);
 
 
-[theta_chol_hat, fval, exitflag, output] = fminunc(negLL_red, theta_chol0, options );
-theta_hat = to_theta(theta_chol_hat); % recover the full vector 
+[theta_red_hat, fval, exitflag, output] = fminunc(negLL_red, theta_chol0, options );
+theta_hat = to_theta(theta_red_hat); % recover the full vector 
 
-all_theta2(:,1) = theta_hat;
-all_theta2(1) = fval; 
+all_theta(:,1) = theta_hat;
+all_theta(1) = fval; 
 
 
 
@@ -99,7 +99,7 @@ rng(123);                     % for reproducibility
 for k = 1:num_inits
     % draw multiplicative factors ∼ Uniform(0.5,1.5)
     mult = 0.5 + 5*rand(p,1);
-    theta0_mat(:,k) = theta_chol_hat .* mult;
+    theta0_mat(:,k) = theta_chol0 .* mult;
 end
 
 %%
@@ -115,10 +115,6 @@ for i = 1:num_inits
     A(i).fval      = fval;
     A(i).exitflag  = exitflag;
     A(i).output    = output;
-
-    all_theta2(:, i+1) = to_theta(theta_hat); 
-    all_fvals2(i+1) = fval; 
-
 end
 
-save('est_corr_unrestricted', 'all_theta2', 'all_fvals2');
+save('est_corr_unrestrictedMat.mat','A');
