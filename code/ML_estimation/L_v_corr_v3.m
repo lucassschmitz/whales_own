@@ -1,8 +1,11 @@
 
-function L_v  = L_v_corr_v2(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3)
-    % implements L_v_corr (produces same result) but trying to optimize the integration,
-    % spetially when the voyage produces 0 output the 3D integral is hard to compute. 
-    % implements voyage likelihood (NOT log-likelihood) given with correlation  
+function logL_v  = L_v_corr_v3(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3)
+    % implements L_v_corr (produces same result up to the log function) but 
+    % trying to optimize the integration, spetially when the voyage produces 0
+    % output the 3D integral is hard to compute. 
+    % implements log voyage likelihood given with correlation  
+    
+    
     J = numel(d_v);
     p = numel(x_v);
     
@@ -31,21 +34,21 @@ function L_v  = L_v_corr_v2(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, 
     %—— Part 1: positive outputs (joint density)
     if isempty(pos_idx)
             %  no positive outputs ⇒ L_pos = 1
-            L_pos = 1;   
+            log_L_pos = 0;   
     else
         
         % product of selection probabilities
-        p_prod = 1;
+        p_prod_log = 0;
         for ii = 1:numel(pos_idx)
             j = pos_idx(ii);
-            p_j = 1/(1+exp(gamma0 - gamma1 * w_hat(j)));
-            p_prod = p_prod * p_j;
+            log_p_j = -log(1 + exp(gamma0 - gamma1 * w_hat(j)));
+            p_prod_log = p_prod_log + log_p_j; 
         end
         
         % joint density of w_hat over positives
         f_pos_joint = mvnpdf(w_hat(pos_idx)', mu_pos', Sigma_pp);  % scalar        
         jac_pos = prod( 1 ./ ( alpha(pos_idx) .* Y_v(pos_idx) ) );  
-        L_pos   = p_prod * f_pos_joint * jac_pos;                   
+        log_L_pos = p_prod_log + log(f_pos_joint) + log(jac_pos);                  
     end
 
     %—— Part 2: zero outputs (one joint integral)
@@ -59,11 +62,12 @@ function L_v  = L_v_corr_v2(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, 
 
     d0 = numel(zero_idx);
     if d0==0
-        L_zero = 1;
+        log_L_zero = 0; 
     elseif d0==1
         w_nodes = sqrt(2*Sigma_cond) * xk + mu_cond;
         f_nodes = exp(gamma0 - gamma1 .* w_nodes) ./ (1 + exp(gamma0 - gamma1 .* w_nodes));        
         L_zero = sum( wk .* f_nodes ) / sqrt(pi);
+        log_L_zero = log(max(L_zero, realmin)); % avoid underflow
 
     elseif d0==2
         L = chol(Sigma_cond, 'lower');
@@ -74,6 +78,7 @@ function L_v  = L_v_corr_v2(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, 
         gvals      = prod(logit_vals, 2);          
         
         L_zero = sum(w_mv.* gvals); 
+        log_L_zero =  log(max(L_zero, realmin)); % avoid underflow
 
     else % for d0>=3
         L = chol(Sigma_cond, 'lower');
@@ -84,7 +89,8 @@ function L_v  = L_v_corr_v2(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, 
         gvals      = prod(logit_vals, 2);          
 
         L_zero = sum(w_mv.* gvals); 
+        log_L_zero = log(max(L_zero, realmin));  % avoid underflow
     end
 
-    L_v = L_pos * L_zero;
+    logL_v = log_L_pos + log_L_zero; 
 end

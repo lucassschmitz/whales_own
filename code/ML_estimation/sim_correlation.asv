@@ -3,19 +3,19 @@ clc
 
 rng(123)
 % parameters 
-C = 40;       % Number of captains 
+C = 50;       % Number of captains 
 J = 3;         % 3 product‐types: bones, oil, sperm
-Vmax = 20;     % maximum of captain voyages. 
+Vmax = 25;     % maximum of captain voyages. 
 
 s_omega = 2 * eye(J);     % std. dev. of product‐specific noise omega_vj
 s_omega = [2 1 1; 1 2 1; 1 1 2];
 disp(['Lowest eigenvalue = ' num2str(min(eig(s_omega)))]);
 
  
-alpha  = [1.55; .8; .82];    % exponent 
+alpha  = [1.3; .8; .82];    % exponent 
 delta  = [2; 2.3; 2.9];    % coefficient of captain random effects
 beta   = [.0019, 0; 0.021, 0; 0.029, 0 ];        % coefficient of ship chars (weight and type).
-gamma0 = 2;                % intercept for zero‐vs‐positive
+gamma0 = 4;                % intercept for zero‐vs‐positive
 gamma1 = 2;                % slope on log(w_{1vj})
 
 
@@ -48,63 +48,54 @@ theta_chol0 = to_chol_theta(theta0); % theta reduced
 [xk2, wk2] = HG2D(15); 
 [xk3, wk3] = HG3D(15);
 
-% CODE USED TO CHECK THE FUNCTIONS
-% 
-% a_c = .76; d_v = d(1:3); Y_v = Y(1:3); x_v = Xmat(3,:)'; tau_v = Tau(3); 
-% 
-% a_c = .76; d_v = d(4:6); Y_v = Y(4:6); x_v = Xmat(4,:)'; tau_v = Tau(4); 
-% 
-% a_c = .76; d_v = d(19:21); Y_v = Y(19:21); x_v = Xmat(19,:)'; tau_v = Tau(19); 
-% 
+% CODE USED TO CHECK THE FUNCTIONS 
+a_c = .76; d_v = d(1:3); Y_v = Y(1:3); x_v = Xmat(3,:)'; tau_v = Tau(3); 
+a_c = .76; d_v = d(4:6); Y_v = Y(4:6); x_v = Xmat(4,:)'; tau_v = Tau(4); 
+a_c = .76; d_v = d(19:21); Y_v = Y(19:21); x_v = Xmat(19,:)'; tau_v = Tau(19); 
 a_c = .76; d_v = d(28:30); Y_v = Y(28:30); x_v = Xmat(28,:)'; tau_v = Tau(28); 
-
+a_c = .76; d_v = d(46:48); Y_v = Y(46:48); x_v = Xmat(46,:)'; tau_v = Tau(28); 
+%a_c = .76; d_v = d(157:159); Y_v = Y(157:159); x_v = Xmat(157,:)'; tau_v = Tau(157); 
 
 res = L_v_corr(theta0, a_c, d_v, Y_v, x_v, tau_v); 
 res2 = L_v_corr_v2(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3); 
-% 
-% theta2 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; diag(in_somega)];
-% res3 = voyageLik(theta2, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
+res21 = exp(L_v_corr_v3(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3) ); 
+%% 
 
+theta2 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; diag(in_somega)];
+res3 = voyageLik(theta2, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
 
-
-
-mask   = (c_id == c);
-d_c    = d_vec(mask);
-Y_c    = Y_vec(mask);
-x_c    = X_mat(mask, :);
-tau_c  = Tau_vec(mask);
+mask   = (c_id == 59);
+d_c    = d(mask);
+Y_c    = Y(mask);
+x_c    = Xmat(mask, :);
+tau_c  = Tau(mask);
 a_c = 0; 
 theta = theta0; 
 res5 = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
-%%
+
 tic
 res6 = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 toc
-% 
 tic
 res7 = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 toc
-%res8 = globalLik_corr(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+tic
+res71 = L_c_corr_int_v3(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+toc
+abs(res6- res7) < 1e-10    & abs(res6- res71) < 1e-10 
 
+tic
+res8 = globalLik_corr(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+toc
+tic 
+res9 = globalLik_corr_v2(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+toc
+abs(res8- res9) < 1e-10
 
-
- %see if there is a particular captain that produces underflow 
-
-
-% c = 3; %captain id
-% for c = 1: 40
-%     mask   = (c_id == c);
-%     d_c    = d(mask);
-%     Y_c    = Y(mask);
-%     X_c    = Xmat(mask, :);
-%     Tau_c  = Tau(mask);
-% 
-%     res9 = L_c_corr_int_v2(theta0, d_c, Y_c, X_c, Tau_c, xk, wk, xk2, wk2, xk3, wk3);
-% end
 
 %% Estimation 
-
-negLL_red = @(chol_theta) -globalLik_corr(to_theta(chol_theta), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
+clc
+negLL_red = @(chol_theta) -globalLik_corr_v2(to_theta(chol_theta), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
 
 % % Diagnostic1
 % % Add this after creating theta_chol0
@@ -120,6 +111,10 @@ negLL_red = @(chol_theta) -globalLik_corr(to_theta(chol_theta), d, Y, Xmat, Tau,
 % theta_chol02 = theta_chol0; 
 % theta_chol02(1:3) = [.2; .2; .2];
 % initial_negLL2 = negLL_red(theta_chol02);
+%
+% %chekc that objective is not flat 
+% a = negLL_red(theta_chol0) 
+% b = negLL_red(theta_chol0+1e-4)
 
 
 % % --- Diagnostic2: Plot Likelihood Surface ---
@@ -141,24 +136,58 @@ negLL_red = @(chol_theta) -globalLik_corr(to_theta(chol_theta), d, Y, Xmat, Tau,
 % xlabel(['Value of Parameter ', num2str(param_to_test)]);
 % ylabel('Negative Log-Likelihood');
 
-
 % Optimization options
 options = optimoptions('fminunc', ...
     'Algorithm', 'quasi-newton', ...
     'Display','iter', ...
-    'MaxIterations',100, ... 
-    'MaxFunctionEvaluations', 100, ...
+    'MaxIterations',200, ... 
+    'MaxFunctionEvaluations', 30, ...
     'OptimalityTolerance',1e-20,...
     'StepTolerance',      1e-15) 
  
 [theta_red_hat, fval, exitflag, output] = fminunc(negLL_red, theta_chol0, options );
 
-%%
 theta_hat = to_theta(theta_red_hat); % recover the full vector 
 ll_hat    = globalLik_corr(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); % evaluate function. 
 
-save('est_corr_unrestricted', 'theta_hat')
+%save('est_corr_unrestricted', 'theta_hat')
 
-%%
-a = negLL_red(theta_chol0) 
-b = negLL_red(theta_chol0+1e-4)
+%% Initial values
+% Number of different starting points
+num_inits = 5;
+
+% Store results in a table for easier comparison
+results_table = table('Size', [num_inits, 4], 'VariableTypes', {'double', 'cell', 'cell', 'double'}, ...
+                      'VariableNames', {'InitialValueID', 'EstimatedTheta', 'DifferenceFromReal', 'Distance'});
+
+% Generate different initial values by adding noise directly to the Cholesky parameters
+theta_chol_inits = repmat(theta_chol0, 1, num_inits) + randn(size(theta_chol0, 1), num_inits) * 0.2;
+
+%% 
+for i = 1:num_inits
+    fprintf('Running Minimization for Initial Value %d...\n', i); 
+
+
+    aux = globalLik_corr(to_theta(theta_chol_inits(:, i)), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3)
+
+    % Run the optimizer
+    [theta_red_hat, fval, exitflag, output] = fminunc(negLL_red, theta_chol_inits(:, i), options );
+    
+    % Store results
+    theta_hat = to_theta(theta_red_hat);
+    difference = theta_hat - theta_real;
+    distance = norm(difference);
+    
+    results_table.InitialValueID(i) = i;
+    results_table.EstimatedTheta{i} = theta_hat';
+    results_table.DifferenceFromReal{i} = difference';
+    results_table.Distance(i) = distance;
+end
+
+%% Comparison of Estimates with theta_real
+
+fprintf('\n\n--- Comparison of Final Estimates with True Theta ---\n\n');
+fprintf('Theta Real:\n');
+disp(theta_real');
+disp('--- Estimation Results ---');
+disp(results_table);

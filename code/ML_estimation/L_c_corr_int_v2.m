@@ -42,5 +42,4 @@ function log_Lc = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2,
     % Log-sum-exp to compute final integrated log-likelihood
     M        = max(log_tk);
     log_Lc   = M + log(sum(exp(log_tk - M)));
-    log_Lc   = log_Lc;
 end
