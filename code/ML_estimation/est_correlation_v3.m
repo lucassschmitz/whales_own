@@ -61,7 +61,7 @@ LogLc = L_c_corr_int_v4(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, ...
 global_lik = globalLik_corr_v3(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
 
 %%
-num_inits = 5; 
+num_inits = 3; 
 %initialize matrices to store the results 
 all_theta2   = nan(numel(theta0),    2*(num_inits+1));
 all_fvals2    = nan(1,        2*(num_inits+1));
@@ -161,7 +161,7 @@ paramNames = { 'beta1','beta2','beta3', ...
                'alpha1','alpha2','alpha3', ...
                'delta1','delta2','delta3', ...
                'gamma0','gamma1', ...
-               'sigma11','sigma12','sigma13','sigma21','sigma22','sigma23','sigma31','sigma32','sigma33' }';
+               'sigma11','sigma12','sigma13','sigma21','sigma22','sigma23','sigma31','sigma32','sigma33', 'lambda1', 'lambda2', 'lambda3'  }';
 
 summaryStats = table(mean_theta', std_theta', var_theta', cv_theta', ...
     'VariableNames', {'Mean','StdDev','Variance','CV'}, 'RowNames', paramNames); 
@@ -187,7 +187,9 @@ alpha  = theta_best(4:6);
 delta  = theta_best(7:9);
 gamma0 = theta_best(10);
 gamma1 = theta_best(11);
-Sigma_omega = reshape(theta_best(12:end), 3, 3);
+Sigma_omega = reshape(theta_best(12:20), 3, 3);
+lambda = theta_best(end-2: end );
+
 
 % Real data moments
 productIDs = unique(T.productID);
@@ -207,6 +209,7 @@ for i = 1:3
 
 end
 
+
 % Simulate
 nSims      = 40;
 sim_meanY  = zeros(J, nSims);
@@ -216,7 +219,7 @@ for j = 1:J                                  %% CHANGE
     simY{j} = [];
 end
 for s = 1:nSims
-    Tsim = IE11_gen_data(T, 3, Sigma_omega, alpha, delta, beta, gamma0, gamma1);  
+    Tsim = IE12_gen_data(T, 3, Sigma_omega, alpha, delta, beta, gamma0, gamma1, lambda);  
     for i = 1:J
         pid  = productIDs(i);
         m    = Tsim.productID == pid;
@@ -230,7 +233,7 @@ for s = 1:nSims
         simY{i} = [simY{i}; Tsim.Y_vj(m)];
     end
 end
-
+%%
 % Average simulated moments
 meanY_sim   = mean(sim_meanY, 2);
 medY_sim   = mean(sim_medianY, 2);
@@ -239,8 +242,8 @@ medY_sim   = mean(sim_medianY, 2);
 share_sim   = mean(sim_share, 2);
 
 % Comparison table
-compareTbl = table(productIDs, real_meanY, real_share,  real_med, meanY_sim, medY_sim, share_sim, medY_sim,   ...
-    'VariableNames', {'productID', 'RealMeanY','RealShare', 'RealMedian','SimMeanY','SimMeanY_cond', 'SimShare', 'median'}); 
+compareTbl = table(productIDs, real_meanY, real_share,  real_med, meanY_sim, share_sim, medY_sim,   ...
+    'VariableNames', {'productID', 'RealMeanY','RealShare', 'RealMedian','SimMeanY', 'SimShare', 'SimMedian'}); 
 disp('Real vs Simulated moments (median conditional on positive production):');
 disp(compareTbl);
 
