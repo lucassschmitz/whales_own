@@ -69,7 +69,7 @@ all_fvals2    = nan(1,        2*(num_inits+1));
 
 theta_chol0 = to_chol_theta(theta0); 
 
-negLL_red = @(theta_red) -globalLik_corr_v2(to_theta(theta_red), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
+negLL_red = @(theta_red) -globalLik_corr_v3(to_theta(theta_red), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
 
 % Optimization options
 options = optimoptions('fminunc', ...
@@ -233,7 +233,7 @@ for s = 1:nSims
         simY{i} = [simY{i}; Tsim.Y_vj(m)];
     end
 end
-%%
+
 % Average simulated moments
 meanY_sim   = mean(sim_meanY, 2);
 medY_sim   = mean(sim_medianY, 2);
