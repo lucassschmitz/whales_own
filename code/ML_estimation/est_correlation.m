@@ -62,7 +62,7 @@ LogLc = L_c_corr_int_v3(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, ...
 global_lik = globalLik_corr_v2(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
 
 %%
-num_inits = 11; 
+num_inits = 5; 
 %initialize matrices to store the results 
 all_theta2   = nan(numel(theta0),    2*(num_inits+1));
 all_fvals2    = nan(1,        2*(num_inits+1));
@@ -89,6 +89,36 @@ all_theta2(1) = fval;
 
 
 %% Loop for different initial guess. 
+
+
+
+% Phase 1: explore relative noise scales to pick a good perturbation
+noise_grid  = [0.001, 0.005, 0.01, 0.02, 0.05, 0.1];  %% CHANGE: define relative noise grid
+valid_counts = zeros(size(noise_grid));
+
+for g = 1:numel(noise_grid)
+    sigma_rel = noise_grid(g);                                               %% CHANGE: relative scale
+    rel_noise = sigma_rel * randn(numel(theta_chol_hat), num_inits);         %% CHANGE: multiplicative perturbations
+    inits     = repmat(theta_chol_hat,1,num_inits) .* (1 + rel_noise);       %% CHANGE: apply relative noise
+    ok = false(1,num_inits);
+    for j = 1:num_inits
+        ok(j) = isfinite( negLL_red(inits(:,j)) );
+    end
+    valid_counts(g) = sum(ok);
+    fprintf("σ_rel = %.3f → %2d/%2d valid inits", sigma_rel, valid_counts(g), num_inits);
+end
+
+% Choose a relative noise level with enough valid inits (e.g., first with ≥8)
+good = find(valid_counts >= 8,1,'first');
+if isempty(good)
+    sigma_pick = noise_grid(end);
+else
+    sigma_pick = noise_grid(good);
+end
+fprintf("Using σ_rel = %.3f for perturbations", sigma_pick);
+
+
+
 
 % set up
 p        = numel(theta_chol0);         

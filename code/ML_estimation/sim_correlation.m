@@ -156,7 +156,7 @@ all_fvals    = nan(1,            num_inits+1);
 options = optimoptions('fminunc', ...
     'Algorithm', 'quasi-newton', ...
     'Display','iter', ...
-    'MaxIterations',200, ... 
+    'MaxIterations',300, ... 
     'MaxFunctionEvaluations', 20, ...
     'OptimalityTolerance',1e-20,...
     'StepTolerance',      1e-15) 
@@ -166,7 +166,7 @@ options = optimoptions('fminunc', ...
 
 theta_hat = to_theta(theta_red_hat); % recover the full vector 
 all_theta(:,1) = theta_hat;
-all_theta(1) = fval; 
+all_fvals(1) = fval; 
  
 
 %% Initial values
@@ -176,10 +176,37 @@ all_theta(1) = fval;
 results_table = table('Size', [num_inits, 4], 'VariableTypes', {'double', 'cell', 'cell', 'double'}, ...
                       'VariableNames', {'InitialValueID', 'EstimatedTheta', 'DifferenceFromReal', 'Distance'});
 
-% Generate different initial values by adding noise directly to the Cholesky parameters
-theta_chol_inits = repmat(theta_red_hat, 1, num_inits) + randn(size(theta_red_hat, 1), num_inits) * 0.01;
+% 1. choose how many inits and what noise‐levels to try
+noise_grid  = [0.1, 0.02, 0.1, 0.2];
+valid_counts = zeros(size(noise_grid)); % much noise generates NaN 
+
+for g = 1:length(noise_grid)
+    sigma = noise_grid(g);
+    % generate your inits for this σ
+    rel_noise = sigma * randn(numel(theta_red_hat), num_inits);
+    inits     = repmat(theta_red_hat,1,num_inits) .* (1 + rel_noise);
+
+    % test each one
+    ok = false(1, num_inits);
+    for j = 1:num_inits
+        val = negLL_red(inits(:,j));
+        ok(j) = isfinite(val);
+    end
+
+    valid_counts(g) = sum(ok);
+    fprintf('σ = %.3f  →  %2d / %2d valid inits\n', sigma, valid_counts(g), num_inits);
+end
 
 
+% 2) Once you pick σ_rel, rebuild inits and run your minimizations:
+sigma_rel       = 0.9;  % for example
+rel_noise   = sigma_rel * randn(numel(theta_red_hat), num_inits);
+theta_chol_inits = repmat(theta_red_hat,1,num_inits) .* (1 + rel_noise);
+
+
+
+
+%% 
 for i = 1:num_inits
     fprintf('Running Minimization for Initial Value %d...\n', i); 
 
@@ -208,7 +235,7 @@ for i = 1:num_inits
     results_table.Distance(i) = distance;
 end
 
-save('est_corr_unrestricted', 'all_theta', 'all_fvals');
+save('sim_corr_unrestricted', 'all_theta', 'all_fvals');
 
 
 
