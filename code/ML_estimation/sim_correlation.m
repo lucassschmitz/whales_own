@@ -248,3 +248,144 @@ disp(theta_real');
 disp('--- Estimation Results ---');
 disp(results_table);
 
+%% ==== Post-Estimation Analysis for sim_correlation ====
+
+% Load the estimation results from the simulation
+load('sim_corr_unrestricted.mat', 'all_theta', 'all_fvals');
+
+% --- 1) Filter out invalid runs (NaN fvals) ---
+validCols = ~isnan(all_fvals);
+theta_mat = all_theta(:, validCols);
+fvals = all_fvals(validCols);
+
+% --- 2) Summary statistics for each parameter ---
+mean_theta = mean(theta_mat, 2)';
+std_theta = std(theta_mat, 0, 2)';
+var_theta = var(theta_mat, 0, 2)';
+cov_theta = cov(theta_mat');
+cv_theta = std_theta ./ abs(mean_theta);
+
+paramNames = {'beta1','beta2','beta3', 'alpha1','alpha2','alpha3', ...
+              'delta1','delta2','delta3', 'gamma0','gamma1', ...
+              'sigma11','sigma12','sigma13','sigma21','sigma22', ...
+              'sigma23','sigma31','sigma32','sigma33'}';
+
+summaryStats = table(mean_theta', std_theta', var_theta', cv_theta', ...
+    'VariableNames', {'Mean','StdDev','Variance','CV'}, 'RowNames', paramNames);
+
+disp('Parameter summary statistics from simulation (valid runs only):');
+disp(summaryStats);
+
+% --- 3) Choose the best theta and compare with the true parameters ---
+[~, relIdx] = min(fvals);
+validIdxs = find(validCols);
+bestIdx = validIdxs(relIdx);
+theta_best = all_theta(:, bestIdx);
+
+% Comparison with the known "real" theta from the simulation
+bestTable = table(theta_real, theta_best, (theta_best - theta_real), ...
+    'VariableNames', {'Theta_Real', 'Theta_Best_Estimated', 'Difference'}, ...
+    'RowNames', paramNames);
+
+disp('Best estimated parameters vs. true parameters:');
+disp(bestTable);
+
+% --- 4) Simulate data with theta_best and compare moments ---
+% Unpack the best-fitting parameters
+beta_est = theta_best(1:3);
+alpha_est = theta_best(4:6);
+delta_est = theta_best(7:9);
+gamma0_est = theta_best(10);
+gamma1_est = theta_best(11);
+Sigma_omega_est = reshape(theta_best(12:end), 3, 3);
+
+% --- "Real" moments from the initial simulated data (Tsim) ---
+productIDs = unique(Tsim.productID);
+real_meanY = zeros(J,1);
+real_share = zeros(J,1);
+real_med = zeros(J,1);
+
+for i = 1:J
+    pid = productIDs(i);
+    mask = Tsim.productID == pid;
+    product_data = Tsim.Y_vj(mask);
+    pos_product = product_data(product_data > 0);
+    
+    real_meanY(i) = mean(product_data);
+    real_share(i) = mean(Tsim.isPositive(mask));
+    real_med(i) = median(pos_product);
+end
+
+% --- Simulate new data using the best estimated parameters ---
+nSims = 40;
+sim_meanY = zeros(J, nSims);
+sim_medianY = zeros(J, nSims);
+sim_share = zeros(J, nSims);
+simY_new = cell(J,1);
+for j = 1:J
+    simY_new{j} = [];
+end
+
+
+% --- FIX: Rename Nvoy to voyageID to match the function's expectation ---
+Tsim.Properties.VariableNames{'Nvoy'} = 'n_voy';
+Tsim.Properties.VariableNames{'Duration'} = 'Tau';
+[Tsim.voyageID, ~] = findgroups(Tsim.captainID, Tsim.n_voy);
+
+for s = 1:nSims
+    % Use IE11_gen_data to keep covariates (tonnage, duration) from Tsim constant
+    Tsim_new = IE11_gen_data(Tsim, J, Sigma_omega_est, alpha_est, delta_est, beta_est, gamma0_est, gamma1_est);
+    for i = 1:J
+        pid = productIDs(i);
+        m = Tsim_new.productID == pid;
+        prod_new = Tsim_new.Y_vj(m);
+        pos_prod_new = prod_new(prod_new > 0 & isfinite(prod_new));
+        
+        sim_meanY(i,s) = mean(prod_new);
+        sim_medianY(i,s) = median(pos_prod_new);
+        sim_share(i,s) = mean(Tsim_new.isPositive(m));
+        simY_new{i} = [simY_new{i}; prod_new];
+    end
+end
+
+% --- Average simulated moments ---
+meanY_sim = mean(sim_meanY, 2);
+medY_sim = mean(sim_medianY, 2);
+share_sim = mean(sim_share, 2);
+
+% --- Comparison Table ---
+compareTbl = table(productIDs, real_meanY, meanY_sim, real_share, share_sim, real_med, medY_sim, ...
+    'VariableNames', {'ProductID','Real_MeanY','Sim_MeanY','Real_Share', ...
+                    'Sim_Share','Real_Median','Sim_Median'});
+disp('"Real" vs. Simulated moments (median conditional on positive production):');
+disp(compareTbl);
+
+% --- 5) Histograms of "real" vs. newly simulated output ---
+figure;
+for j = 1:J
+    pid = productIDs(j);
+    
+    % Prepare "Real" (original Tsim) data
+    Yr = Tsim.Y_vj(Tsim.productID == pid);
+    Yr_pos = Yr(Yr > 0 & isfinite(Yr));
+    
+    % Prepare newly simulated data
+    Ys = simY_new{j};
+    Ys_pos = Ys(Ys > 0 & isfinite(Ys));
+
+    % Plot "Real" Data
+    subplot(2, J, j);
+    histogram(Yr_pos, 'Normalization', 'pdf');
+    xlim([0, prctile(Yr_pos, 99)]);
+    title(sprintf('Original Sim: Product %d', pid));
+    xlabel('Y');
+    ylabel('Density');
+
+    % Plot Newly Simulated Data
+    subplot(2, J, J + j);
+    histogram(Ys_pos, 'Normalization', 'pdf');
+    xlim([0, prctile(Ys_pos, 99)]);
+    title(sprintf('New Sim (from est.): Product %d', pid));
+    xlabel('Y');
+    ylabel('Density');
+end

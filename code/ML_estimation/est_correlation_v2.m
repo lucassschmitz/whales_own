@@ -77,7 +77,7 @@ options = optimoptions('fminunc', ...
     'Algorithm','quasi-newton', ...
     'Display','iter', ...
     'MaxIterations',500, ...
-    'MaxFunctionEvaluations',20);
+    'MaxFunctionEvaluations',10);
 
 
 [theta_chol_hat, fval, exitflag, output] = fminunc(negLL_red, theta_chol0, options );
@@ -192,96 +192,84 @@ Sigma_omega = reshape(theta_best(12:end), 3, 3);
 
 % Real data moments
 productIDs = unique(T.productID);
-real_meanY = zeros(nProd,1);
-real_share = zeros(nProd,1);
+real_meanY = zeros(J,1);
+real_share = zeros(J,1);
+real_med = zeros(J,1);
 for i = 1:3
     pid = productIDs(i);
     mask = T.productID == pid;
     real_meanY(i) = mean(T.Y(mask));
     real_share(i)= mean(T.d(mask)==1);
+
+    product = T.Y(mask); 
+    pos_product = product(product>0); 
+
+    real_med(i) = median(pos_product); 
+
 end
 
 % Simulate
 nSims      = 40;
-sim_meanY  = zeros(nProd, nSims);
-sim_share  = zeros(nProd, nSims);
-simY = cell(nProd,1);                            %% CHANGE
-for j = 1:nProd                                  %% CHANGE
+sim_meanY  = zeros(J, nSims);
+sim_share  = zeros(J, nSims);
+simY = cell(J,1);                            %% CHANGE
+for j = 1:J                                  %% CHANGE
     simY{j} = [];
 end
 for s = 1:nSims
     Tsim = IE11_gen_data(T, 3, Sigma_omega, alpha, delta, beta, gamma0, gamma1);  
-    for i = 1:nProd
+    for i = 1:J
         pid  = productIDs(i);
         m    = Tsim.productID == pid;
+        prod = Tsim.Y_vj(m); 
+        pos_prod = prod(prod>0); 
         sim_meanY(i,s) = mean(Tsim.Y_vj(m));
+     
+        sim_medianY(i,s) = median(pos_prod); 
+
         sim_share(i,s)= mean(Tsim.isPositive(m));
-        simY{j} = [simY{j}; Tsim.Y_vj(m)];
+        simY{i} = [simY{i}; Tsim.Y_vj(m)];
     end
 end
 
 % Average simulated moments
 meanY_sim   = mean(sim_meanY, 2);
+medY_sim   = mean(sim_medianY, 2);
+
+
 share_sim   = mean(sim_share, 2);
 
 % Comparison table
-compareTbl = table(productIDs, real_meanY, real_share, meanY_sim, share_sim, ...
-    'VariableNames', {'productID','RealMeanY','RealShare','SimMeanY','SimShare'}); 
-disp('Real vs Simulated moments:');
+compareTbl = table(productIDs, real_meanY, real_share,  real_med, meanY_sim, medY_sim, share_sim, medY_sim,   ...
+    'VariableNames', {'productID', 'RealMeanY','RealShare', 'RealMedian','SimMeanY','SimMeanY_cond', 'SimShare', 'median'}); 
+disp('Real vs Simulated moments (median conditional on positive production):');
 disp(compareTbl);
-% 6) Histograms of real vs simulated output by product
-figure;                                          %% unchanged
-for j = 1:nProd                                  %% unchanged
-    pid = productIDs(j);
-    Yr  = T.Y(T.productID==pid);                 %% unchanged
-    Yr_pos = Yr(Yr>0);                            %% CHANGE: only positive real
-    Ys  = simY{j};                                %% unchanged
-    Ys_pos = Ys(Ys>0);                            %% CHANGE: only positive sim
-
-    subplot(2, nProd, j);                        %% unchanged
-    histogram(Yr_pos);                            %% CHANGE
-    title(sprintf('Real: Product %d', pid));      %% unchanged
-    xlabel('Y'); ylabel('Count');                 %% unchanged
-
-    subplot(2, nProd, nProd+j);                   %% unchanged
-    histogram(Ys_pos);                            %% CHANGE
-    title(sprintf('Sim: Product %d', pid));       %% unchanged
-    xlabel('Y'); ylabel('Count');                 %% unchanged
-end                                               %% unchanged of real vs simulated output by product
-figure;                                          %% CHANGE
-for j = 1:nProd                                  %% CHANGE
-    pid = productIDs(j);                        %% CHANGE
-    Yr  = T.Y(T.productID==pid);               %% CHANGE: real Y
-    Ys  = simY{j};                              %% CHANGE: simulated Y
-
-    subplot(2, nProd, j);                      %% CHANGE
-    histogram(Yr);                              %% CHANGE
-    title(sprintf('Real: Product %d', pid));    %% CHANGE
-    xlabel('Y'); ylabel('Count');               %% CHANGE
-
-    subplot(2, nProd, nProd+j);                 %% CHANGE
-    histogram(Ys);                              %% CHANGE
-    title(sprintf('Sim: Product %d', pid));     %% CHANGE
-    xlabel('Y'); ylabel('Count');               %% CHANGE
-end                                             %% CHANGE
 
 
 %%
 % 6) Histograms of real vs simulated output by product
-figure;                                          %% CHANGE
-for j = 1:nProd                                  %% CHANGE
-    pid = productIDs(j);                        %% CHANGE
+figure;                                          
+for j = 1:J                                  
+    pid = productIDs(j);                         
     Yr  = T.Y(T.productID==pid);
-    Ys  = simY{j};                      
-   
-    subplot(2, nProd, j);                      %% CHANGE
-    histogram(Yr);                              %% CHANGE
-    title(sprintf('Real: Product %d', pid));    %% CHANGE
-    xlabel('Y'); ylabel('Count');               %% CHANGE
+    Yr = Yr(Yr> 0); 
 
-    subplot(2, nProd, nProd+j);                 %% CHANGE
-    histogram(Ys);                              %% CHANGE
-    title(sprintf('Sim: Product %d', pid));     %% CHANGE
-    xlabel('Y'); ylabel('Count');               %% CHANGE
+    Ys  = simY{j};                      
+    Ys = Ys(Ys>0); 
+
+    %Ys = Ys(Ys< prctile(Ys, 80)); 
+    
+    subplot(2, J, j);                      %% CHANGE
+    histogram(Yr, 'Normalization','pdf');   
+    xlim([0, prctile(Yr, 99)]);
+    title(sprintf('Real: Product %d positive only', pid));    %% CHANGE
+    xlabel('Y'); ylabel('Density');               %% CHANGE
+
+    subplot(2, J, J+j);                 %% CHANGE
+    %histogram(Ys ,'NumBins', 50);  
+    histogram(Ys, 'Normalization', 'pdf');
+    xlim([0, prctile(Ys, 99)]);
+    title(sprintf('Sim: Product %d positive only', pid));     %% CHANGE
+    xlabel('Y'); ylabel('Density');               
 end                                             %% CHANGE
  
