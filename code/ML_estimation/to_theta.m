@@ -7,7 +7,8 @@ L = [theta_chol(12), 0, 0;
 sigma = L * L';
 
 theta = [theta_chol(1:11);  % copy β, α, δ, γ0, γ1
-        reshape(sigma,9,1)];
+        reshape(sigma,9,1); 
+        theta_chol(end-2:end)];
 
  end
 
