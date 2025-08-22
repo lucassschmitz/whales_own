@@ -250,6 +250,8 @@ disp(compareTbl);
 
 %%
 % 6) Histograms of real vs simulated output by product
+
+xsimlims = [6e4, 4e3, 1e4]; 
 figure;                                          
 for j = 1:J                                  
     pid = productIDs(j);                         
@@ -258,9 +260,10 @@ for j = 1:J
 
     Ys  = simY{j};                      
     Ys = Ys(Ys>0); 
-
-    %Ys = Ys(Ys< prctile(Ys, 80)); 
     
+    if j == 1 
+        Ys = Ys(Ys< prctile(Ys, 98)); 
+    end 
     subplot(2, J, j);                      %% CHANGE
     histogram(Yr, 'Normalization','pdf');   
     xlim([0, prctile(Yr, 99)]);
@@ -268,9 +271,11 @@ for j = 1:J
     xlabel('Y'); ylabel('Density');               %% CHANGE
 
     subplot(2, J, J+j);                 %% CHANGE
-    %histogram(Ys ,'NumBins', 50);  
+    histogram(Ys ,'NumBins', 50);  
     histogram(Ys, 'Normalization', 'pdf');
-    xlim([0, prctile(Ys, 99)]);
+    %xlim([0, prctile(Yr, 99)]);
+    xlim([0,xsimlims(j)]);
+
     title(sprintf('Sim: Product %d positive only', pid));     %% CHANGE
     xlabel('Y'); ylabel('Density');               
 end                                             %% CHANGE
