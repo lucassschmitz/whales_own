@@ -1,9 +1,21 @@
-The files in the order they are written and also the order in which they must be run are: 
+This folder contains all data processing and analysis scripts 
 
--clean.do 
-cleans the data 
+## Main Files
 
-- IE_x
-are initial exploration files with descriptive statistics. 
+### Data Cleaning
+- **clean.do**: Primary data cleaning script that processes raw whaling voyage data, creates the master dataset, and merges captain information with voyage records. This must be run first.
 
-Additionally the ML_estimation folder contains the code to estimate a production model by ML, for the description of the model see the pdf document corresponding to the meeting of the 2nd of July. 
+### Initial Exploration Files
+- **IE[1-9]*.do/r**: Sequential analysis files exploring different aspects of the data. These should be run in numerical order after clean.do
+
+## Subfolders
+
+### ML_estimation/
+Contains Maximum Likelihood estimation code for structural production models with captain and vessel fixed effects. **This folder has its own README with detailed documentation of the estimation procedures.**
+
+## Output
+
+All code files generate outputs following these conventions:
+- Figures are saved to `../Figures/` with prefix matching the source file
+- Tables are saved to `../Writeup/Tables/` in LaTeX format
+- Intermediate data files (temp*) are saved to `../Data/`

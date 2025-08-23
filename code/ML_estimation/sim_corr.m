@@ -239,7 +239,7 @@ for i = 1:num_inits
     results_table.Distance(i) = distance;
 end
 
-save('sim_corr_unrestricted', 'all_theta', 'all_fvals');
+save('output/sim_corr_unrestricted', 'all_theta', 'all_fvals');
 
 
 
@@ -255,7 +255,7 @@ disp(results_table);
 %% ==== Post-Estimation Analysis for sim_correlation ====
 
 % Load the estimation results from the simulation
-load('sim_corr_unrestricted.mat', 'all_theta', 'all_fvals');
+load('output/sim_corr_unrestricted.mat', 'all_theta', 'all_fvals');
 
 % --- 1) Filter out invalid runs (NaN fvals) ---
 validCols = ~isnan(all_fvals);

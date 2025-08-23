@@ -4,7 +4,7 @@ clear
 clc
 rng(123)
 
-T = readtable('../../Data/temps/clean_ML_estimation.xlsx');
+T = readtable('../../Data/clean_ML_estimation.xlsx');
 disp(head(T));
 
 
@@ -71,7 +71,7 @@ options = optimoptions('fminunc', ...
 %Final log-likelihood at estimated parameters
 ll_hat = globalLik_v3(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk);
 
-save('est_ind_unrestricted', 'theta_hat')
+save('output/est_ind_unrestricted', 'theta_hat')
 
 %% Loop for different initial guess. 
 
@@ -102,7 +102,7 @@ for i = 1:nInits
     A(i).output    = output;
 end
 
-save('est_ind_unrestrictedMat.mat','A');
+save('output/est_ind_unrestrictedMat.mat','A');
 
 
 %% restricted minimization 
@@ -135,7 +135,7 @@ for i = 1:nInits
     A2(i).output    = output;      % struct (e.g., iterations, message, etc.)
 end
 
-save('est_ind_restrictedMat.mat', 'A2');
+save('outputest_ind_restrictedMat.mat', 'A2');
 
 %% nelder mead minimization 
 
@@ -147,10 +147,10 @@ opts2 = optimset('Display','iter','TolFun',1e-8,'TolX',1e-8);
  
 
 % 1) Load saved estimates ──────────────────────────────────────────────
-load('est_ind_unrestricted.mat','theta_hat')    % fminunc initial
-load('est_ind_restricted.mat','theta_hat2')  % fmincon initial
-load('est_ind_unrestrictedMat.mat','A')    % struct array from fminunc runs
-load('est_ind_restrictedMat.mat','A2')  % struct array from fmincon runs
+load('output/est_ind_unrestricted.mat','theta_hat')    % fminunc initial
+load('output/est_ind_restricted.mat','theta_hat2')  % fmincon initial
+load('output/est_ind_unrestrictedMat.mat','A')    % struct array from fminunc runs
+load('output/est_ind_restrictedMat.mat','A2')  % struct array from fmincon runs
 
 %── 2) Stack into one big matrix ────────────────────────────────────────
 N = numel(A);               % number of additional inits per optimizer

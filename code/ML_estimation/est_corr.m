@@ -5,7 +5,7 @@ clear
 clc
 rng(123)
 
-T = readtable('../../Data/temps/clean_ML_estimation.xlsx');
+T = readtable('../../Data/clean_ML_estimation.xlsx');
 disp(head(T));
 
 
@@ -29,10 +29,11 @@ in_alpha     = [1; 1; 1];       % initial   α's (α=1)
 in_delta = [1 ; 1; 1]; %7:9
 in_gamma0 = .4;               % initial γ0 10 
 in_gamma1 = 1;               % initial γ1 11
-in_somega = [1, 0.5, .5; .5, 3, .5; .5, .5, .5];     
+in_somega = [1, 0.5, .5; .5, 3, .5; .5, .5, .5];
+in_lambda = [5;  1; 1]; 
 % σ_a is normalized to 1 
 
-theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega(:)];
+theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega(:); in_lambda];
 
 [xk, wk] = HG(30);  % 30-node rule
 [xk2, wk2] = HG2D(15); 
@@ -44,10 +45,7 @@ Y_v = Y(1:3);
 x_v = Xmat(3,:)';
 tau_v = Tau(3); 
 
-res = L_v_corr_v3(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3);
-
-%% 
-
+res = L_v_corr_v4(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3);
 
 
 mask  = (c_id==284);
@@ -56,13 +54,14 @@ Y_cap    = Y(mask);
 Xmat_cap    = Xmat(mask,:);
 tau_v_cap  = Tau(mask);
 
-LogLc = L_c_corr_int_v3(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, ... 
+LogLc = L_c_corr_int_v4(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, ... 
                 xk, wk, xk2, wk2, xk3, wk3);        
 
-global_lik = globalLik_corr_v2(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+
+global_lik = globalLik_corr_v3(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
 
 %%
-num_inits = 5; 
+num_inits = 3; 
 %initialize matrices to store the results 
 all_theta2   = nan(numel(theta0),    2*(num_inits+1));
 all_fvals2    = nan(1,        2*(num_inits+1));
@@ -70,7 +69,7 @@ all_fvals2    = nan(1,        2*(num_inits+1));
 
 theta_chol0 = to_chol_theta(theta0); 
 
-negLL_red = @(theta_red) -globalLik_corr_v2(to_theta(theta_red), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
+negLL_red = @(theta_red) -globalLik_corr_v3(to_theta(theta_red), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
 
 % Optimization options
 options = optimoptions('fminunc', ...
@@ -137,13 +136,13 @@ for i = 1:num_inits
 
 end
 
-save('est_corr_unrestricted', 'all_theta2', 'all_fvals2');
+save('output/est_corr_unrestricted_v2', 'all_theta2', 'all_fvals2');
 
 
 %% ==== Post-Estimation Analysis ====
 % Load saved results
 
-load('est_corr_unrestricted.mat','all_theta2', 'all_fvals2') 
+load('output/est_corr_unrestricted_v2.mat','all_theta2', 'all_fvals2') 
 
 
 % 1) Filter out invalid runs (NaN fvals)
@@ -162,7 +161,7 @@ paramNames = { 'beta1','beta2','beta3', ...
                'alpha1','alpha2','alpha3', ...
                'delta1','delta2','delta3', ...
                'gamma0','gamma1', ...
-               'sigma11','sigma12','sigma13','sigma21','sigma22','sigma23','sigma31','sigma32','sigma33' }';
+               'sigma11','sigma12','sigma13','sigma21','sigma22','sigma23','sigma31','sigma32','sigma33', 'lambda1', 'lambda2', 'lambda3'  }';
 
 summaryStats = table(mean_theta', std_theta', var_theta', cv_theta', ...
     'VariableNames', {'Mean','StdDev','Variance','CV'}, 'RowNames', paramNames); 
@@ -188,7 +187,9 @@ alpha  = theta_best(4:6);
 delta  = theta_best(7:9);
 gamma0 = theta_best(10);
 gamma1 = theta_best(11);
-Sigma_omega = reshape(theta_best(12:end), 3, 3);
+Sigma_omega = reshape(theta_best(12:20), 3, 3);
+lambda = theta_best(end-2: end );
+
 
 % Real data moments
 productIDs = unique(T.productID);
@@ -208,6 +209,7 @@ for i = 1:3
 
 end
 
+
 % Simulate
 nSims      = 40;
 sim_meanY  = zeros(J, nSims);
@@ -217,7 +219,7 @@ for j = 1:J                                  %% CHANGE
     simY{j} = [];
 end
 for s = 1:nSims
-    Tsim = IE11_gen_data(T, 3, Sigma_omega, alpha, delta, beta, gamma0, gamma1);  
+    Tsim = IE12_gen_data(T, 3, Sigma_omega, alpha, delta, beta, gamma0, gamma1, lambda);  
     for i = 1:J
         pid  = productIDs(i);
         m    = Tsim.productID == pid;
@@ -240,14 +242,16 @@ medY_sim   = mean(sim_medianY, 2);
 share_sim   = mean(sim_share, 2);
 
 % Comparison table
-compareTbl = table(productIDs, real_meanY, real_share,  real_med, meanY_sim, medY_sim, share_sim, medY_sim,   ...
-    'VariableNames', {'productID', 'RealMeanY','RealShare', 'RealMedian','SimMeanY','SimMeanY_cond', 'SimShare', 'median'}); 
+compareTbl = table(productIDs, real_meanY, real_share,  real_med, meanY_sim, share_sim, medY_sim,   ...
+    'VariableNames', {'productID', 'RealMeanY','RealShare', 'RealMedian','SimMeanY', 'SimShare', 'SimMedian'}); 
 disp('Real vs Simulated moments (median conditional on positive production):');
 disp(compareTbl);
 
 
 %%
 % 6) Histograms of real vs simulated output by product
+
+xsimlims = [6e4, 4e3, 1e4]; 
 figure;                                          
 for j = 1:J                                  
     pid = productIDs(j);                         
@@ -256,9 +260,10 @@ for j = 1:J
 
     Ys  = simY{j};                      
     Ys = Ys(Ys>0); 
-
-    %Ys = Ys(Ys< prctile(Ys, 80)); 
     
+    if j == 1 
+        Ys = Ys(Ys< prctile(Ys, 98)); 
+    end 
     subplot(2, J, j);                      %% CHANGE
     histogram(Yr, 'Normalization','pdf');   
     xlim([0, prctile(Yr, 99)]);
@@ -266,9 +271,11 @@ for j = 1:J
     xlabel('Y'); ylabel('Density');               %% CHANGE
 
     subplot(2, J, J+j);                 %% CHANGE
-    %histogram(Ys ,'NumBins', 50);  
+    histogram(Ys ,'NumBins', 50);  
     histogram(Ys, 'Normalization', 'pdf');
-    xlim([0, prctile(Ys, 99)]);
+    %xlim([0, prctile(Yr, 99)]);
+    xlim([0,xsimlims(j)]);
+
     title(sprintf('Sim: Product %d positive only', pid));     %% CHANGE
     xlabel('Y'); ylabel('Density');               
 end                                             %% CHANGE
