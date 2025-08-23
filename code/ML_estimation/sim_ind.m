@@ -17,7 +17,7 @@ gamma0 = 2;                % intercept for zero‐vs‐positive
 gamma1 = 2;                % slope on log(w_{1vj})
 
 
-Tsim = IE10_gen_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1);
+Tsim = simulate_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1);
 
 theta_real = [beta(:,1); alpha; delta; gamma0; gamma1; diag(s_omega)];
 
@@ -65,21 +65,21 @@ Y_cap    = Y(mask);
 Xmat_cap    = Xmat(mask,:);
 tau_v_cap  = Tau(mask);
 
-LogLc = captainLik_v2(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk);        
+LogLc = captainLik(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk);        
 
 %%
-L_global3 = globalLik_v3(theta0, d, Y, Xmat, Tau, c_id, xk, wk);
+L_global3 = globalLik(theta0, d, Y, Xmat, Tau, c_id, xk, wk);
 %%
 
 % Set up negative log-likelihood for minimization
-negLL = @(th) -globalLik_v3(th, d, Y, Xmat, Tau, c_id, xk, wk);
+negLL = @(th) -globalLik(th, d, Y, Xmat, Tau, c_id, xk, wk);
 
 % Optimization options
 options = optimoptions('fminunc', ...
     'Algorithm','quasi-newton', ...
     'Display','iter', ...
     'MaxIterations',4000, ...
-    'MaxFunctionEvaluations',4000);
+    'MaxFunctionEvaluations',4);
 
 % Estimate theta by minimizing negative log-likelihood
 [theta_hat, fval, exitflag, output] = fminunc(negLL, theta0, options);

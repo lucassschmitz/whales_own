@@ -1,5 +1,5 @@
 
-function Tsim = IE12_gen_data(T, J, s_omega, alpha, delta, beta, gamma0, gamma1, lambda)
+function Tsim = simulate_partial_data(T, J, s_omega, alpha, delta, beta, gamma0, gamma1, lambda)
 
 %differences with IE11_gen_data: receives input lambda and uses to multiply
 %production. 

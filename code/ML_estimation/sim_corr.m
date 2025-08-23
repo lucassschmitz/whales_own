@@ -19,7 +19,7 @@ gamma0 = 4;                % intercept for zero‐vs‐positive
 gamma1 = 2;                % slope on log(w_{1vj})
 
 
-Tsim = IE10_gen_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1);
+Tsim = simulate_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1);
 
 theta_real = [beta(:,1); alpha; delta; gamma0; gamma1; s_omega(:)];
 
@@ -72,10 +72,10 @@ theta_chol0 = to_chol_theta(theta0); % theta reduced
 % res = L_v_corr(theta0, a_c, d_v, Y_v, x_v, tau_v); 
 % toc
 % tic
-% res2 = L_v_corr_v2(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3); 
+% res2 = L_v_corr(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3); 
 % toc
 % tic
-% res21 = exp(L_v_corr_v3(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3) ); 
+% res21 = exp(L_v_corr(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3) ); 
 % toc
 % theta2 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; diag(in_somega)];
 % res3 = voyageLik(theta2, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
@@ -94,10 +94,10 @@ theta_chol0 = to_chol_theta(theta0); % theta reduced
 % res6 = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 % toc
 % tic
-% res7 = L_c_corr_int_v2(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+% res7 = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 % toc
 % tic
-% res71 = L_c_corr_int_v3(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
+% res71 = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3); 
 % toc
 % abs(res6- res7) < 1e-10    & abs(res6- res71) < 1e-10 
 % 
@@ -105,7 +105,7 @@ theta_chol0 = to_chol_theta(theta0); % theta reduced
 % res8 = globalLik_corr(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
 % toc
 % tic 
-% [res9, B] = globalLik_corr_v2(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+% [res9, B] = globalLik_corr(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
 % toc
 % abs(res8- res9) < 1e-10
 
@@ -113,7 +113,7 @@ theta_chol0 = to_chol_theta(theta0); % theta reduced
 %% Estimation 
 
 num_inits = 2; % different starting points 
-negLL_red = @(chol_theta) -globalLik_corr_v3(to_theta(chol_theta), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
+negLL_red = @(chol_theta) -globalLik_corr(to_theta(chol_theta), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
 
 %matrices to store the results. 
 all_theta   = nan(numel(theta0),    num_inits+1);

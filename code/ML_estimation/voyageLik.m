@@ -1,4 +1,4 @@
-function L_v = voyageLik_v2(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk )
+function L_v = voyageLik(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk )
     % improves voyageLik_prev by allowing product specific betas. 
     % does not allow for correlation. 
     J = 3;

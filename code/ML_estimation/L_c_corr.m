@@ -32,7 +32,7 @@ function logL = L_c_corr(theta, a_c, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3
         tau_v  = tau_c(idx(1));
 
         % Voyage-level log-likelihood with correlated ω (conditional on a_c)
-        L_v = L_v_corr_v2(theta, a_c, d_v, Y_v, X_v, tau_v, ...
+        L_v = L_v_corr(theta, a_c, d_v, Y_v, X_v, tau_v, ...
                             xk, wk, xk2, wk2, xk3, wk3);
 
         logL = logL + log(L_v);

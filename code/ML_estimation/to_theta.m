@@ -1,5 +1,4 @@
-
- function theta = to_theta(theta_chol) 
+function theta = to_theta(theta_chol) 
 
 L = [theta_chol(12), 0, 0;  
     theta_chol(15), theta_chol(13), 0; 
@@ -10,7 +9,7 @@ theta = [theta_chol(1:11);  % copy β, α, δ, γ0, γ1
         reshape(sigma,9,1); 
         theta_chol(end-2:end)];
 
- end
+end
 
 
  % v1 commented below 

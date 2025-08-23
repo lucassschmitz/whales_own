@@ -1,5 +1,5 @@
 
-function log_Lc = L_c_corr_int_v4(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
+function log_Lc = L_c_corr_int(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2, xk3, wk3)
     % difference with v3 is that uses the L_v_corr_v4 which introduces lambda parameters 
     J     = 3;
     Ncap  = numel(d_c) / J;
@@ -20,7 +20,7 @@ function log_Lc = L_c_corr_int_v4(theta, d_c, Y_c, x_c, tau_c, xk, wk, xk2, wk2,
             x_v   = x_c(idx(1), :);
             tau_v = tau_c(idx(1));
             
-            logL_voyages = logL_voyages + L_v_corr_v4(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3);
+            logL_voyages = logL_voyages + L_v_corr(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3);
         end
         log_tk(qi) = log_w(qi) + logL_voyages;
     end

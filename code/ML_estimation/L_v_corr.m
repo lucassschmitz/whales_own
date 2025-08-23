@@ -1,5 +1,5 @@
 
-function logL_v  = L_v_corr_v4(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3)
+function logL_v  = L_v_corr(theta, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3)
     % the differ with v3 is that includes lambda. 
     
     

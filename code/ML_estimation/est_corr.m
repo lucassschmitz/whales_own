@@ -45,7 +45,7 @@ Y_v = Y(1:3);
 x_v = Xmat(3,:)';
 tau_v = Tau(3); 
 
-res = L_v_corr_v4(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3);
+res = L_v_corr(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk, xk2, wk2, xk3, wk3);
 
 
 mask  = (c_id==284);
@@ -54,11 +54,11 @@ Y_cap    = Y(mask);
 Xmat_cap    = Xmat(mask,:);
 tau_v_cap  = Tau(mask);
 
-LogLc = L_c_corr_int_v4(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, ... 
+LogLc = L_c_corr_int(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, ... 
                 xk, wk, xk2, wk2, xk3, wk3);        
 
 
-global_lik = globalLik_corr_v3(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
+global_lik = globalLik_corr(theta0, d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3); 
 
 %%
 num_inits = 3; 
@@ -69,7 +69,7 @@ all_fvals2    = nan(1,        2*(num_inits+1));
 
 theta_chol0 = to_chol_theta(theta0); 
 
-negLL_red = @(theta_red) -globalLik_corr_v3(to_theta(theta_red), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
+negLL_red = @(theta_red) -globalLik_corr(to_theta(theta_red), d, Y, Xmat, Tau, c_id, xk, wk, xk2, wk2, xk3, wk3 );
 
 % Optimization options
 options = optimoptions('fminunc', ...
@@ -136,13 +136,13 @@ for i = 1:num_inits
 
 end
 
-save('output/est_corr_unrestricted_v2', 'all_theta2', 'all_fvals2');
+save('output/est_corr_unrestricted', 'all_theta2', 'all_fvals2');
 
 
 %% ==== Post-Estimation Analysis ====
 % Load saved results
 
-load('output/est_corr_unrestricted_v2.mat','all_theta2', 'all_fvals2') 
+load('output/est_corr_unrestricted.mat','all_theta2', 'all_fvals2') 
 
 
 % 1) Filter out invalid runs (NaN fvals)

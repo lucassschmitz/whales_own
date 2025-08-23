@@ -1,5 +1,5 @@
 
-function logLc = captainLik_v2(theta, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk)
+function logLc = captainLik(theta, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk)
     % CAPTAIN-LEVEL likelihood using Gauss-Hermite with product-specific betas
     % and using logs to avoid underflowing. Returns the log captain
     % likelihood .

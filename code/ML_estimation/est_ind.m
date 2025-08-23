@@ -41,7 +41,7 @@ Y_v = Y(1:3);
 x_v = Xmat(3,:)';
 tau_v = Tau(3); 
 
-res = voyageLik_v2(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
+res = voyageLik(theta0, a_c, d_v, Y_v, x_v, tau_v, xk, wk); 
 
 mask  = (c_id==284);
 d_cap    = d(mask);
@@ -49,12 +49,12 @@ Y_cap    = Y(mask);
 Xmat_cap    = Xmat(mask,:);
 tau_v_cap  = Tau(mask);
 
-LogLc = captainLik_v2(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk);        
+LogLc = captainLik(theta0, d_cap, Y_cap, Xmat_cap, tau_v_cap, xk, wk);        
 
-L_global3 = globalLik_v3(theta0, d, Y, Xmat, Tau, c_id, xk, wk);
+L_global3 = globalLik(theta0, d, Y, Xmat, Tau, c_id, xk, wk);
 
 %Set up negative log-likelihood for minimization
-negLL = @(th) -globalLik_v3(th, d, Y, Xmat, Tau, c_id, xk, wk);
+negLL = @(th) -globalLik(th, d, Y, Xmat, Tau, c_id, xk, wk);
 
 %Optimization options
 options = optimoptions('fminunc', ...
@@ -69,7 +69,7 @@ options = optimoptions('fminunc', ...
 [theta_hat, fval, exitflag, output] = fminunc(negLL, theta0, options);
 
 %Final log-likelihood at estimated parameters
-ll_hat = globalLik_v3(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk);
+ll_hat = globalLik(theta_hat, d, Y, Xmat, Tau, c_id, xk, wk);
 
 save('output/est_ind_unrestricted', 'theta_hat')
 
@@ -135,7 +135,7 @@ for i = 1:nInits
     A2(i).output    = output;      % struct (e.g., iterations, message, etc.)
 end
 
-save('outputest_ind_restrictedMat.mat', 'A2');
+save('output/est_ind_restrictedMat.mat', 'A2');
 
 %% nelder mead minimization 
 

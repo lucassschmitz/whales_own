@@ -1,5 +1,4 @@
-
-function L = globalLik_v3(theta, d_vec, Y_vec, X_mat, Tau_vec, c_id, xk, wk)
+function L = globalLik(theta, d_vec, Y_vec, X_mat, Tau_vec, c_id, xk, wk)
 % globalLik  Computes full-sample likelihood by multiplying captainLik
 %this version uses parfor to be more efficient by using parallel
 %computation 
@@ -30,7 +29,7 @@ function L = globalLik_v3(theta, d_vec, Y_vec, X_mat, Tau_vec, c_id, xk, wk)
         X_c    = X_mat(mask,:);
         Tau_c  = Tau_vec(mask);
         % returns log L_c
-        logL_c(c) = captainLik_v2(theta, d_c, Y_c, X_c, Tau_c, xk, wk);
+        logL_c(c) = captainLik(theta, d_c, Y_c, X_c, Tau_c, xk, wk);
     end
     
     % sum up all the per‐captain logs

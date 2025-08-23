@@ -1,4 +1,4 @@
-function [L, logL_c] = globalLik_corr_v3(theta, d_vec, Y_vec, X_mat, Tau_vec, c_id, xk, wk, xk2, wk2, xk3, wk3)
+function [L, logL_c] = globalLik_corr(theta, d_vec, Y_vec, X_mat, Tau_vec, c_id, xk, wk, xk2, wk2, xk3, wk3)
 % globalLik_corr  Full-sample log-likelihood across all captains allowing
 % for correlation. Diff with v2 is that uses L_c_corr_int_v4
 %   theta    parameter vector as above
@@ -29,7 +29,7 @@ function [L, logL_c] = globalLik_corr_v3(theta, d_vec, Y_vec, X_mat, Tau_vec, c_
         X_c    = X_mat(mask, :);
         Tau_c  = Tau_vec(mask);
 
-        logL_c(c) = L_c_corr_int_v4(theta, d_c, Y_c, X_c, Tau_c, ...
+        logL_c(c) = L_c_corr_int(theta, d_c, Y_c, X_c, Tau_c, ...
                                     xk, wk, xk2, wk2, xk3, wk3);
     end
 
