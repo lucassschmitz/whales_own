@@ -1,5 +1,5 @@
 
-function Tsim = simulate_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1)
+function Tsim = simulate_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1, lambda)
 % does allow for correlation in the errors. 
 %differences with IE9_gen_data: 
 % 1.  we tweak the function to produce data similar to the real data
@@ -7,8 +7,8 @@ function Tsim = simulate_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, g
 % 3. for simplicity duration was kept fixed to 1, now I allow for it to
 % change production 
 
-%   beta      - J×2 matrix of covariate coefficients (product-specific)  <-- CHANGED
-
+%   beta      - J×2 matrix of covariate coefficients (product-specific) 
+%   lambda    - J×1 vector of product-specific scaling factors  
 
 % parameters obtained from our data 
 %1. duration (taken as continuous; mean 2.5, s.d 1.5, min 1) 
@@ -33,7 +33,7 @@ X1        = zeros(N,1);
 X2        = zeros(N,1);
 
 a_c       = zeros(N,1);
-omega_vj  = zeros(N,1);   % STILL a scalar per row, but filled from a J‐vector
+omega_vj  = zeros(N,1);   
 log_wvj   = zeros(N,1);
 P_pos     = zeros(N,1);
 isPositive= zeros(N,1);
@@ -101,7 +101,7 @@ for c = 1:C
 
             tau_v = Dur(idx);  
             if isPositive(idx)
-                Y_vj(idx) = (tau_v * exp(log_wvj(idx)))^alpha(j);
+                Y_vj(idx) = lambda(j) * (tau_v * exp(log_wvj(idx)))^alpha(j);
             else
                 Y_vj(idx) = 0;
             end

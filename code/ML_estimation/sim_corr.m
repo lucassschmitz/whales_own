@@ -20,7 +20,7 @@ gamma1 = 2;                % slope on log(w_{1vj})
 lambda = [1; 1; 1]; 
 
 
-Tsim = simulate_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1);
+Tsim = simulate_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1, lambda);
 
 theta_real = [beta(:,1); alpha; delta; gamma0; gamma1; s_omega(:); lambda];
 
