@@ -18,6 +18,6 @@ theta_chol = [
         L(2,1);       % σ12 = σ21
         L(3,1);       % σ13 = σ31
         L(3,2);         % σ23 = σ32
-        theta(21:end)
+        theta(21:end) % lambda for each product
     ];
 end 
