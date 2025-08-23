@@ -12,7 +12,11 @@ library(lmtest)
 
 rm(list = ls())
 
-setwd("C:/Users/lucas/Dropbox/whales_own")
+
+script_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
+setwd(dirname(script_dir))
+print(getwd())
+
 
 fig_folder <- "Figures/meeting_250527"
 
@@ -82,7 +86,7 @@ cor(df$master_fe_m8, df$vessel_fe_m8, use = "complete.obs")
     esttex(  m4,  m5, m6, m7, m8, 
     keep   = c("%n_voyage", "%l_re_prod" ),
     dict = c(re_prod = "Production/Duration", n_voyage  = "Experience"),
-    file   = "Writeup/Tables/tab_n_voyage2.tex",
+    file   = "Writeup/Tables/IE6_tab_n_voyage2.tex",
     replace = TRUE,          
     label  = "tab:n_voyage", 
     title  = "Effect of Experience on Production",

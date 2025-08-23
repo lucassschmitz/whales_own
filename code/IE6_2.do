@@ -29,7 +29,7 @@ eststo m3: reghdfe re_prod n_voy lag_prod,       absorb(mastercode)
 eststo m4: reghdfe re_prod n_voy lag_prod,       absorb(boatcode)
 eststo m5: reghdfe re_prod n_voy lag_prod,       absorb(mastercode boatcode yearout)
 
-esttab m1 m2 m3 m4 m5 using "Writeup/Tables/do_reg.tex", replace ///
+esttab m1 m2 m3 m4 m5 using "Writeup/Tables/IE6_do_reg.tex", replace ///
     title("Table 1: Effect of Experience on Production")        ///
     mtitles("(1)" "(2)" "(3)" "(4)" "(5)")                   ///
     label                                                      ///

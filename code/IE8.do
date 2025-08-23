@@ -46,7 +46,7 @@ xtset mastercode n_voy
 gen re_prod2 = re_prod/1000
 label var re_prod2 "Product" 
 
-save Data/temps/temp, replace
+save Data/temp2, replace
 
 est clear
 
@@ -74,7 +74,7 @@ esttab  m1 m2  m3 m2_2 m2_3 m2_4   using "Writeup/Tables/IE8do_temp.tex", replac
 	nogaps noomit  addnotes(" ")
 	
 //////////////// Coefficient over time //// /
-use Data/temps/temp, clear
+use Data/temp2, clear
 summ Total if n_voy == 1, d
 
 // 1. Run regressions by n_voy, storing coefficient and its standard error
@@ -98,7 +98,7 @@ twoway ///
 
  
  //////////////// Coefficient over time with interaction //// /
-use Data/temps/temp, clear
+use Data/temp2, clear
 
 bysort mastercode (n_voy): gen lag_prod2 = re_prod2[_n-1]
 
@@ -142,7 +142,7 @@ restore
  
 //////////
  
- use Data/temps/temp, clear
+ use Data/temp2, clear
 	
 bysort mastercode (n_voy): egen y_sumcum = sum(re_prod2)
 gen prev_y = y_sumcum - re_prod2

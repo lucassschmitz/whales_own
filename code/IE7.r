@@ -13,7 +13,11 @@ library(lmtest)
 #library(plm)
 rm(list = ls())
 
-setwd("C:/Users/lucas/Dropbox/whales_own")
+
+script_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
+setwd(dirname(script_dir))
+print(getwd())
+
 
 fig_folder <- "Figures/meeting_250603"
 
@@ -58,7 +62,7 @@ df <- read_csv("Data/masters_voyages_merged.csv")
 
  esttex(   m1,  m2, m2b, m3, m5,  
     dict = c(re_prod = "Production/Duration", n_voyage  = "Experience", exp_years = "Exp. in years"),
-    file   = "Writeup/Tables/aux.tex",
+    file   = "Writeup/Tables/IE7_experience_on_production.tex",
     replace = TRUE,          
     label  = "tab:n_voyage", 
     title  = "Effect of Experience on Production",
@@ -176,7 +180,7 @@ df_previous <- df %>% filter(master_last == 0)
 
 esttex( m10, m11,  m12, m13, 
     dict = c(re_prod = "Whole sample ", n_voyage  = "Experience"),
-    file   = "Writeup/Tables/aux2.tex",
+    file   = "Writeup/Tables/IE7_aux2.tex",
     replace = TRUE,          
     label  = "tab:aux2", 
     title  = "Whole sample",
@@ -192,7 +196,7 @@ esttex( m10, m11,  m12, m13,
     
 esttex( m10a,m10a2, m10a3,  m10a4, 
     dict = c(re_prod = "Whole sample ", n_voyage  = "Experience"),
-    file   = "Writeup/Tables/aux3.tex",
+    file   = "Writeup/Tables/IE7_aux3.tex",
     replace = TRUE,          
     label  = "tab:aux3", 
     title  = "Autocorrelation for different samples. ",
@@ -214,7 +218,7 @@ esttex( m10a,m10a2, m10a3,  m10a4,
     m19a <- feols(re_prod ~ 1 + l_re_prod   |  mastercode + vesselcode + yearout , data = df5)
 esttex(   m11a,  m12a, m13a, m14a, m15a, m16a, m17a, m18a, m19a,
     dict = c(re_prod = "Whole sample ", n_voyage  = "Experience"),
-    file   = "Writeup/Tables/aux4.tex",
+    file   = "Writeup/Tables/IE7_aux4.tex",
     replace = TRUE,          
     label  = "tab:n_voyage", 
     title  = "Effect of Experience on Production",
@@ -235,7 +239,7 @@ models <- list(m10_last, m11_last, m12_last, m13_last,
 
 esttex(models, 
     dict = c(re_prod = "Whole sample ", n_voyage  = "Experience"),
-    file   = "Writeup/Tables/aux5.tex",
+    file   = "Writeup/Tables/IE7_aux5.tex",
     replace = TRUE,          
     label  = "tab:n_voyage", 
     title  = "Last voyage or not last voyage",

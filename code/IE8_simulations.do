@@ -77,11 +77,11 @@ binscatter Total masterFE if time==1, nquantiles(20)
 graph export "Figures/meeting_250610/IE8_sim_Totalvoyages_quality.png", replace
 
 est clear 
-save Data/temps/temp, replace
+save Data/temp3, replace
 
 //////// Trajectory beliefs over time /////// 
 
-use Data/temps/temp, clear
+use Data/temp3, clear
 
 preserve
 egen FE_group = cut(masterFE), group(3) // low, medium, high skill groups
@@ -103,7 +103,7 @@ graph export "Figures/meeting_250610/IE8_sim_posterior_time(2).png", replace
 restore
 
 /////////////// Cumulative firing rates. 
-use Data/temps/temp, clear
+use Data/temp3, clear
 
 xtile FE_quartile = masterFE if time==1, nq(4)
 
@@ -131,7 +131,7 @@ twoway ///
 graph export "Figures/meeting_250610/IE8_sim_cumulativefiringrate_time.png", replace
 
 ///////// Belief upadting by CatpainFE quartiles. ///// 
-use Data/temps/temp, clear
+use Data/temp3, clear
 
 bysort id (time): gen update = mu_post - mu_post[_n-1] if observed == 1 
 
@@ -159,7 +159,7 @@ twoway ///
 graph export "Figures/meeting_250610/IE8_sim_update_time.png", replace
 
 ///////
-use Data/temps/temp, clear
+use Data/temp3, clear
 keep if observed == 1
 
 xtile y_quint = y  , nq(5)
@@ -175,7 +175,7 @@ graph export "Figures/meeting_250610/IE8_sim_probexit_production.png", replace
 
   
 //////// 
-	use Data/temps/temp, clear
+	use Data/temp3, clear
 	// Create initial skill groups (quartiles)
 xtile FE_quartile = masterFE if time==1, nq(4)
 bys id (time): replace FE_quartile = FE_quartile[1]
@@ -200,7 +200,7 @@ graph export "Figures/meeting_250610/IE8_sim_exit_time_production.png", replace
 
 ////////// ////////////////////////////////////////
 
-use Data/temps/temp, clear
+use Data/temp3, clear
 
 statsby coef=_b[y], by(time) nodots clear: regress master_last y
 
@@ -218,7 +218,7 @@ twoway line coef time if time < 13 , sort ///
  
  
  
-use Data/temps/temp, clear
+use Data/temp3, clear
 
 by id (time): gen lag_y     = y[_n-1]
 gen      y_lag_int = y * lag_y
@@ -262,7 +262,7 @@ restore
 ////////////////////////////////////////////////////////////
  
 
- use Data/temps/temp, clear
+ use Data/temp3, clear
 
 gen prev_y = y_cumsum - y 
 

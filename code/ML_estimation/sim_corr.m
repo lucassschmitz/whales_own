@@ -47,7 +47,7 @@ in_alpha     = [.8;.8; .8];       % initial   α's (α=1)
 in_delta = [1 ; 1; 1]; %6:8
 in_gamma0 = .4;               % initial γ0 9 
 in_gamma1 = 1;               % initial γ1 10
-in_somega = [10,0, 0; 0, 30, 0; 10, 0, 0];       % initial σ_{ω,j} (σ=1)
+in_somega = [10,0, 0; 0, 30, 0; 0, 0, 10];       % initial σ_{ω,j} (σ=1)
 
 theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega(:)];
 theta_chol0 = to_chol_theta(theta0); % theta reduced 

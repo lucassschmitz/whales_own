@@ -53,7 +53,7 @@ replace d = 0 if Y == 0
 
 egen captainID = group(mastercode) 
 
-export excel using "Data/temps/clean_ML_estimation.xlsx", firstrow(variables) replace
+export excel using "Data/clean_ML_estimation.xlsx", firstrow(variables) replace
 
 
 
