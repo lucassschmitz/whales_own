@@ -17,11 +17,12 @@ delta  = [2; 2.3; 2.9];    % coefficient of captain random effects
 beta   = [.019, 0; 0.021, 0; 0.029, 0 ];        % coefficient of ship chars (weight and type).
 gamma0 = 4;                % intercept for zero‐vs‐positive
 gamma1 = 2;                % slope on log(w_{1vj})
+lambda = [1; 1; 1]; 
 
 
 Tsim = simulate_data(C, J, Vmax, s_omega, alpha, delta, beta, gamma0, gamma1);
 
-theta_real = [beta(:,1); alpha; delta; gamma0; gamma1; s_omega(:)];
+theta_real = [beta(:,1); alpha; delta; gamma0; gamma1; s_omega(:); lambda];
 
 
 % prepare data vectors
@@ -40,9 +41,9 @@ in_delta = [2 ; 2; 2]; %6:8
 in_gamma0 = 4;               % initial γ0 9 
 in_gamma1 = 2;               % initial γ1 10
 in_somega = [2, 0, 0; 0, 2, 0; 0, 0, 2];       % initial σ_{ω,j} (σ=1)
-lambda = [1; 1; 1]; 
+in_lambda = [1; 1; 1]; 
 
-theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega(:); lambda];
+theta0 = [in_beta; in_alpha; in_delta; in_gamma0; in_gamma1; in_somega(:); in_lambda];
 theta_chol0 = to_chol_theta(theta0); % theta reduced 
 
 [xk, wk] = HG(15);  % 30-node rule
